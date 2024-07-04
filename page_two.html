@@ -1,0 +1,112 @@
+<section id="page_two">
+    <style>
+        @import "css/styles.css";
+        /* @import "css/camera-styles.css"; */
+    </style>
+
+    <div class="bg-svg"></div>
+        <h3>Identity Verification</h3>
+        <p>Please enable your camera in order to take a selfie. Remember to look straight into the camera.</p>
+    <div>
+    <!-- Camera Section -->
+    <!-- <div class="camera-ctn">
+        <canvas id="canvas"> </canvas>
+        <div class="camera-view">
+          <video id="camera-stream" autoplay loop muted>
+            <source src="" >
+          </video>
+        </div>
+        <div class="camera-bottom">
+          <div class="inner">
+            <div class="modes">
+              <button class="active">
+                PHOTO
+              </button>
+            </div>
+            <div class="shutter-ctn">
+              <button id="photos-btn" class="previous-shots">
+              </button>
+              <button id="shutter" class="shutter">
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      <div class="gallery-view">
+        <button id="prev">
+          PREV
+        </button>
+        <img data-index="0" src="" alt="current viewed img">
+        <button id="next">
+          NEXT
+        </button>
+        <button id="close-gallery">
+          GO BACK
+        </button>
+      </div> -->
+      <!-- End of camera section -->
+
+    <!-- Stream the video via webcam  -->
+    <div class="video-wrap">
+      <video id="video" playsinline autoplay></video>
+    </div>
+
+    <!-- Trigger canvas web API -->
+     <div class="controller">
+      <button id="snap">Capture</button>
+     </div>
+
+     <!-- Webcam video snapshot -->
+      <canvas id="canvas" width="640" height="480"></canvas>
+
+
+    <div class="btn-group">
+        <button type="button" class="btn-prev" disabled>Back</button>
+        <button type="button" class="btn-next">Next Step</button>
+    </div>
+
+    <script>
+
+      'use strict';
+
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const snap = document.getElementById('snap');
+      const errorMsgElement = document.getElementById('span#ErrorMsg');
+
+      const constraints = {
+        audio: false,
+        video:{
+          width: 1280, height: 720
+        }
+      }
+
+      // Access Webcam
+      async function init() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+          handleSuccess(stream);
+        }
+        catch(e) {
+          errorMsgElement.innerHTML = `navigator.getUserMedia.error:${e.toString()}`;
+        }
+      }
+
+      // Success      
+      function handleSuccess(stream){
+        window.stream = stream;
+        video.srcObject = stream;
+      }
+
+      // Load init
+      init();
+
+      // Draw Image
+      var context = canvas.getContext('2d');
+      snap.addEventListener("click", function() {
+        context.drawImage(video, 0, 0, 640, 480);
+      })
+
+    </script>
+</section>

@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <title>Multistep Form</title>
 </head>
 <body>
@@ -15,25 +18,18 @@
                 <div class="form-box">
                     <div class="progress">
                         <div class="logo"><a href="/"><span>VC</span></a></div>
-                        <div class="step-title" id="1">
-                            <h4>Step 1</h4><br>
-                            <p class="step-description">Enter your personal information in order to proceed to the next step.</p>
+
+                        <div class="bg-svg"></div>
+                        <div class="step-title">
+                            <h4>Step 1</h4>
+                            <p class="step-description" id="1">Enter your personal information in order to proceed to the next step.</p>                           
+                            <!-- <p class="step-description" id="2"><h4>Step 2</h4><br>Please complete the verification process in order to proceed to the next step.</p>
+                            <br>                            
+                            <p class="step-description" id="3"><h4>Step 3</h4><br>Attach the requested documents in order to proceed to the next step.</p>
                             <br>
-                        </div>
-                        <div class="step-title" id="2">
-                            <h4>Step 2</h4><br>
-                            <p class="step-description">Please complete the verification process in order to proceed to the next step.</p>
-                            <br>
-                        </div>
-                        <div class="step-title" id="3">
-                            <h4>Step 3</h4><br>
-                            <p class="step-description">Attach the requested documents in order to proceed to the next step.</p>
-                            <br>
-                        </div>
-                        <div class="step-title" id="4">
-                            <h4>Step 4</h4><br>
-                            <p class="step-description">Please sign and confirm the choices in order to submit successfully.</p>
-                            <br>
+                            <p class="step-description" id="4"><h4>Step 4</h4><br>Please sign and confirm the choices in order to submit successfully.</p>
+                            <br> -->
+
                         </div>
                         <ul class="progress-steps">
                             <li class="step active">
@@ -54,43 +50,39 @@
                             </li>
                         </ul>
                     </div>
-                    <form action="">
-                        <div class="form-one form-step">
-                            <div class="bg-svg"></div>
-                            <h3>Your Personal Information</h3>
-                            <p>Please fill out the fields below:</p>
-                            <div>
-                                <label for="">Full Name</label>
-                                <input type="text" placeholder="e.g John Smith" id="">
-                            </div>
-                            <div class="same-line">
-                                <label for="">ID Number</label>
-                                <input type="number" placeholder="e.g 12345678" id="">
-                                <label for="">Phone Number</label>
-                                <input type="tel" placeholder="e.g +254xxxxxxxx" id="">
-                            </div>
-                            <div>
-                                <label for="">KRA Pin</label>
-                                <input type="text" placeholder="e.g A0xxxxxxx" id="">
-                            </div>
-                            <div class="same-line">
-                                <label for="">Address</label>
-                                <input type="number" placeholder="e.g 44041" id="">
-                                <label for="">Code</label>
-                                <input type="number" placeholder="e.g 00100" id="">
-                                <label for="">Town</label>
-                                <input type="text" placeholder="e.g Nairobi" id="">
-                            </div>
-                            <div>
-                                <label for="">Email Address</label>
-                                <input type="email" placeholder="e.g johnsmith@gmail.com" id="">
-                            </div>
-                            <div class="btn-group">
-                                <button type="button" class="btn-prev" disabled>Back</button>
-                                <button type="button" class="btn-next">Next Step</button>
-                            </div>
-                        </div>
-                    </form>
+
+                    <section id="page_one">
+                        <form action="">
+                            <div class="form-one form-step">
+                                <div class="bg-svg"></div>
+                                <h3>Your Personal Information</h3>
+                                <p>Please fill out the fields below:</p>
+                                <div>
+                                    <input type="text" placeholder="Full Name" id="long-input-box">
+                                </div>
+                                <div class="row">
+                                    <input type="number" placeholder="ID Number" id="id-number">
+                                    <input type="tel" placeholder="Phone Number" id="phone-number">
+                                </div>
+                                <div>
+                                    <input type="text" placeholder="KRA Pin" id="kra-pin">
+                                </div>
+                                <div class="row">
+                                    <input type="number" placeholder="Address" id="address">
+                                    <input type="number" placeholder="Code" id="code">
+                                    <input type="text" placeholder="Town" id="town">
+                                </div>
+                                <div>
+                                    <input type="email" placeholder="Email Address" id="long-input-box">
+                                </div>
+                                <div class="btn-group">
+                                    <button type="button" class="btn-prev" disabled>Back</button>
+                                    <button type="button" class="btn-next">Next Step</button>
+                                </div>
+                            </div>                        
+                        </form>
+                    </section>
+
                 </div>
             </div>
         </div>  

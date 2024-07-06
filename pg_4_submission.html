@@ -1,0 +1,138 @@
+<section id="page-three">
+    <style>
+        @import "css/styles.css";
+        @import "css/submission.css";
+    </style>
+
+    <!-- final submission page -->
+    <div class="bg-svg"></div>
+        <h3>Submission</h3>
+        <p>Please sign and accept the data protection clause in order for you to submit successfully.</p>
+
+    <!-- signature section -->
+    <div class="signature-box">
+        <label for="signature">Sign Here:</label>
+        <div id="signature-pad" class="signature-pad"></div>
+        <div class="buttons">
+            <button class="cancel" onclick="clearSignature()">Cancel</button>
+            <button class="accept" onclick="acceptSignature()">Accept</button>
+        </div>
+    </div>    
+
+    <!-- personal relief section -->
+    <details>
+        <summary>
+            <div class="form-group">
+                <label>Do you want Personal Relief?</label>
+                <input type="checkbox" id="personal-relief-yes">
+                <label for="personal-relief-yes">Yes</label>
+                <input type="checkbox" id="personal-relief-no">
+                <label for="personal-relief-no">No</label>
+            </div>
+        </summary> 
+        <div class="form-group personal-relief-request">
+            <h4>Personal Relief Request</h4>
+            <p>
+                I <input type="text"></hr> ID No. <input type="number"></hr>being an annuitant under the Sanlam Insurance Limited (‘Sanlam’) Policy/Annuity No. <input type="text"></hr> do hereby confirm that the annuity payout is my main source of income and will claim for the applicable personal relief on the ssaid income from Sanlam and not from other source for tax purposes.
+
+                I, the above mentioned and undersigned having taken up my right to claim for tax relief and hereby indemnify Sanlam Life Insurance Limited according to the terms set forth here follows:
+
+                </br>
+
+                <ol>
+                    <li>
+                        I undertake that Sanlam shall not bear ultimate responsibility, whether in contract, or (including negligence), breach of statutory duty, equity or otherwise, to myself in any respect for any principal tax, penalties and interest suffered by myself howsoever arising from the subject matter  claim.
+                    </li>
+                    <li>
+                        I undertake to indemnify and hold Sanlam life insurance harmless from and against any and all loss  suffered by the Company                                         
+                        howsoever arising in regard to the subject matter claim.
+                    </li>
+                    <li>I agree that - 
+                        <ol>
+                            <li>
+                                This declaration shall apply to my personal representatives, successors, assigns in title and any|or all authorised representatives.
+                            </li>
+                            <li>
+                                Nothing in this declaration shall exclude or in any way limit Sanlam Life insurance liability ot fraudor any other liability to the extent such liability my not be excluded or limited as  a matter of the  Laws of Kenya.
+                            </li>
+                            <li>
+                                If any provision of this declaration is prohibited by Law or judged in a Court to be unlawful, void or unenforceable, the provision shall, to the extent required, be servered from this Agreement and rendered ineffective as far as possible without modifying the remaining provisions of this Agreement and shall not in any way affect any other circumstances of or the validity or enforcement of this Agreement.
+                            </li>
+                        </ol>
+                    </li>
+                </ol>
+
+                </br>
+
+                I/We hereby declare the truth and correctness of all the statements and particulars entered in this application and that I have not withheld any material information, and that my/our answers herein are in my/our full knowledge and have been written by me/us or with my/our full authority.             
+            </p>
+        </div>   
+
+        <!-- first annuitants signature -->
+        <div class="signature-box">
+            <label for="signature">Sign Here:</label>
+            <div id="signature-pad" class="signature-pad"></div>
+            <div class="buttons">
+                <button class="cancel" onclick="clearSignature()">Cancel</button>
+                <button class="accept" onclick="acceptSignature()">Accept</button>
+            </div>
+        </div>
+        
+
+        <!-- second annuitants signature -->
+        <div class="signature-box">
+            <label for="signature">Sign Here:</label>
+            <div id="signature-pad" class="signature-pad"></div>
+            <div class="buttons">
+                <button class="cancel" onclick="clearSignature()">Cancel</button>
+                <button class="accept" onclick="acceptSignature()">Accept</button>
+            </div>
+        </div>
+
+    </details>
+
+    </br>
+    
+    <!-- data protection checbox -->
+    <div class="form-group">
+        <input type="checkbox" id="data-protection">
+        <label for="data-protection">I agree that I have read and understood the <a href="#">Data Protection Notice</a>.</label>
+    </div>
+
+    </br>
+
+    <div class="btn-group">
+        <button type="button" class="btn-prev">Back</button>
+        <button type="button" class="btn-next">Next Step</button>
+    </div>
+
+    <script>
+        let signaturePad = document.getElementById('signature-pad');
+        let isDrawing = false;
+        let ctx = signaturePad.getContext('2d');
+
+        signaturePad.addEventListener('mousedown', () => isDrawing = true);
+        signaturePad.addEventListener('mouseup', () => isDrawing = false);
+        signaturePad.addEventListener('mousemove', draw);
+
+        function draw(event) {
+            if (!isDrawing) return;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+            ctx.lineTo(event.clientX - signaturePad.offsetLeft, event.clientY - signaturePad.offsetTop);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(event.clientX - signaturePad.offsetLeft, event.clientY - signaturePad.offsetTop);
+        }
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, signaturePad.width, signaturePad.height);
+        }
+
+        function acceptSignature() {
+            // Handle signature acceptance logic
+        }
+    </script>
+
+</section>  

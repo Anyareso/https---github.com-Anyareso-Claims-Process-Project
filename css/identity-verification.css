@@ -1,0 +1,18 @@
+.upload-files{
+    width:400px;
+    height:300px;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    background: #f7f8ff;
+}
+input[type="file"]{
+    display: none;
+}
+.browse-btn{
+    height: 150px;
+    background-color: #3471d6;
+    color: white;
+    font-family: 'Montserrat', arial, serif;
+    font-size: 20px;
+}

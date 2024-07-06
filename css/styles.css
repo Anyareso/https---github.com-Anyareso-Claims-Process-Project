@@ -58,7 +58,7 @@ p.step-description {
 .progress ul.progress-steps li {
     position: relative;
     display: flex;
-    align-items: flex-start;<<<<<<< main
+    align-items: flex-start;
     margin-bottom: 0.7em;
 
 }

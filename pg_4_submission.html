@@ -10,14 +10,14 @@
         <p>Please sign and accept the data protection clause in order for you to submit successfully.</p>
 
     <!-- signature section -->
-    <div class="form-group">
+    <div class="signature-box">
         <label for="signature">Sign Here:</label>
         <div id="signature-pad" class="signature-pad"></div>
-    </div>
-    <div class="buttons">
-        <button class="cancel" onclick="clearSignature()">Cancel</button>
-        <button class="accept" onclick="acceptSignature()">Accept</button>
-    </div>
+        <div class="buttons">
+            <button class="cancel" onclick="clearSignature()">Cancel</button>
+            <button class="accept" onclick="acceptSignature()">Accept</button>
+        </div>
+    </div>    
 
     <!-- personal relief section -->
     <details>
@@ -69,32 +69,37 @@
         </div>   
 
         <!-- first annuitants signature -->
-        <div class="form-group">
+        <div class="signature-box">
             <label for="signature">Sign Here:</label>
             <div id="signature-pad" class="signature-pad"></div>
+            <div class="buttons">
+                <button class="cancel" onclick="clearSignature()">Cancel</button>
+                <button class="accept" onclick="acceptSignature()">Accept</button>
+            </div>
         </div>
-        <div class="buttons">
-            <button class="cancel" onclick="clearSignature()">Cancel</button>
-            <button class="accept" onclick="acceptSignature()">Accept</button>
-        </div>
+        
 
         <!-- second annuitants signature -->
-        <div class="form-group">
+        <div class="signature-box">
             <label for="signature">Sign Here:</label>
             <div id="signature-pad" class="signature-pad"></div>
-        </div>
-        <div class="buttons">
-            <button class="cancel" onclick="clearSignature()">Cancel</button>
-            <button class="accept" onclick="acceptSignature()">Accept</button>
+            <div class="buttons">
+                <button class="cancel" onclick="clearSignature()">Cancel</button>
+                <button class="accept" onclick="acceptSignature()">Accept</button>
+            </div>
         </div>
 
     </details>
 
+    </br>
+    
     <!-- data protection checbox -->
     <div class="form-group">
         <input type="checkbox" id="data-protection">
         <label for="data-protection">I agree that I have read and understood the <a href="#">Data Protection Notice</a>.</label>
     </div>
+
+    </br>
 
     <div class="btn-group">
         <button type="button" class="btn-prev">Back</button>

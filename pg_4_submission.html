@@ -12,28 +12,30 @@
     <!-- signature section -->
     <div class="signature-box">
         <label for="signature">Sign Here:</label>
-        <div id="signature-pad" class="signature-pad"></div>
+        <canvas id="signature-pad-1" class="signature-pad" width="250" height="150"></canvas>
         <div class="buttons">
-            <button class="cancel" onclick="clearSignature()">Cancel</button>
-            <button class="accept" onclick="acceptSignature()">Accept</button>
+            <button class="cancel" id="cancel-1">Cancel</button>
+            <button class="accept" id="accept-1">Accept</button>
         </div>
     </div>    
 
     <!-- personal relief section -->
-    <details>
+    <div class="form-group">
+        <label>Do you want Personal Relief?</label>
+        <input type="radio" name="personal-relief" id="personal-relief-yes">
+        <label for="personal-relief-yes">Yes</label>
+        <input type="radio" name="personal-relief" id="personal-relief-no">
+        <label for="personal-relief-no">No</label>
+    </div>
+
+    <details id="personal-relief-section" style="display: none;">
         <summary>
-            <div class="form-group">
-                <label>Do you want Personal Relief?</label>
-                <input type="checkbox" id="personal-relief-yes">
-                <label for="personal-relief-yes">Yes</label>
-                <input type="checkbox" id="personal-relief-no">
-                <label for="personal-relief-no">No</label>
-            </div>
+            Personal Relief Details
         </summary> 
         <div class="form-group personal-relief-request">
             <h4>Personal Relief Request</h4>
             <p>
-                I <input type="text"></hr> ID No. <input type="number"></hr>being an annuitant under the Sanlam Insurance Limited (‘Sanlam’) Policy/Annuity No. <input type="text"></hr> do hereby confirm that the annuity payout is my main source of income and will claim for the applicable personal relief on the ssaid income from Sanlam and not from other source for tax purposes.
+                I <input id="client-name" type="text"></hr> ID No. <input type="number"></hr> being an annuitant under the Sanlam Insurance Limited (‘Sanlam’) Policy/Annuity No. <input type="text"></hr> do hereby confirm that the annuity payout is my main source of income and will claim for the applicable personal relief on the said income from Sanlam and not from other source for tax purposes.
 
                 I, the above mentioned and undersigned having taken up my right to claim for tax relief and hereby indemnify Sanlam Life Insurance Limited according to the terms set forth here follows:
 
@@ -41,22 +43,22 @@
 
                 <ol>
                     <li>
-                        I undertake that Sanlam shall not bear ultimate responsibility, whether in contract, or (including negligence), breach of statutory duty, equity or otherwise, to myself in any respect for any principal tax, penalties and interest suffered by myself howsoever arising from the subject matter  claim.
+                        I undertake that Sanlam shall not bear ultimate responsibility, whether in contract, or (including negligence), breach of statutory duty, equity or otherwise, to myself in any respect for any principal tax, penalties and interest suffered by myself howsoever arising from the subject matter claim.
                     </li>
                     <li>
-                        I undertake to indemnify and hold Sanlam life insurance harmless from and against any and all loss  suffered by the Company                                         
+                        I undertake to indemnify and hold Sanlam life insurance harmless from and against any and all loss suffered by the Company                                         
                         howsoever arising in regard to the subject matter claim.
                     </li>
                     <li>I agree that - 
-                        <ol>
+                        <ol class="lowercase-list">
                             <li>
                                 This declaration shall apply to my personal representatives, successors, assigns in title and any|or all authorised representatives.
                             </li>
                             <li>
-                                Nothing in this declaration shall exclude or in any way limit Sanlam Life insurance liability ot fraudor any other liability to the extent such liability my not be excluded or limited as  a matter of the  Laws of Kenya.
+                                Nothing in this declaration shall exclude or in any way limit Sanlam Life insurance liability to fraud or any other liability to the extent such liability may not be excluded or limited as a matter of the Laws of Kenya.
                             </li>
                             <li>
-                                If any provision of this declaration is prohibited by Law or judged in a Court to be unlawful, void or unenforceable, the provision shall, to the extent required, be servered from this Agreement and rendered ineffective as far as possible without modifying the remaining provisions of this Agreement and shall not in any way affect any other circumstances of or the validity or enforcement of this Agreement.
+                                If any provision of this declaration is prohibited by Law or judged in a Court to be unlawful, void or unenforceable, the provision shall, to the extent required, be severed from this Agreement and rendered ineffective as far as possible without modifying the remaining provisions of this Agreement and shall not in any way affect any other circumstances of or the validity or enforcement of this Agreement.
                             </li>
                         </ol>
                     </li>
@@ -66,29 +68,33 @@
 
                 I/We hereby declare the truth and correctness of all the statements and particulars entered in this application and that I have not withheld any material information, and that my/our answers herein are in my/our full knowledge and have been written by me/us or with my/our full authority.             
             </p>
-        </div>   
 
-        <!-- first annuitants signature -->
-        <div class="signature-box">
-            <label for="signature">Sign Here:</label>
-            <div id="signature-pad" class="signature-pad"></div>
-            <div class="buttons">
-                <button class="cancel" onclick="clearSignature()">Cancel</button>
-                <button class="accept" onclick="acceptSignature()">Accept</button>
-            </div>
-        </div>
+            </br>
+
+            <div class="personal-relief-request-signatures">
+                <!-- first annuitants signature -->
+                <div class="signature-box" id="first-signature">
+                    <label for="signature">Sign Here:</label>
+                    <canvas id="signature-pad-2" class="signature-pad" width="250" height="150"></canvas>
+                    <div class="buttons">
+                        <button class="cancel" id="cancel-2">Cancel</button>
+                        <button class="accept" id="accept-2">Accept</button>
+                    </div>
+                </div>
+                
+
+                <!-- second annuitants signature -->
+                <div class="signature-box" id="second-signature">
+                    <label for="signature">Sign Here:</label>
+                    <canvas id="signature-pad-3" class="signature-pad" width="250" height="150"></canvas>
+                    <div class="buttons">
+                        <button class="cancel" id="cancel-3">Cancel</button>
+                        <button class="accept" id="accept-3">Accept</button>
+                    </div>
+                </div>
+            </div>            
+        </div> 
         
-
-        <!-- second annuitants signature -->
-        <div class="signature-box">
-            <label for="signature">Sign Here:</label>
-            <div id="signature-pad" class="signature-pad"></div>
-            <div class="buttons">
-                <button class="cancel" onclick="clearSignature()">Cancel</button>
-                <button class="accept" onclick="acceptSignature()">Accept</button>
-            </div>
-        </div>
-
     </details>
 
     </br>
@@ -103,36 +109,92 @@
 
     <div class="btn-group">
         <button type="button" class="btn-prev">Back</button>
-        <button type="button" class="btn-next">Next Step</button>
+        <button type="button" class="btn-submit">Submit</button>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="js/signature-pad.js"></script>
     <script>
-        let signaturePad = document.getElementById('signature-pad');
-        let isDrawing = false;
-        let ctx = signaturePad.getContext('2d');
+            document.addEventListener("DOMContentLoaded", function() {
+            var signaturePads = [];
+            
+            function initializeSignaturePad(canvasId, cancelBtnId, acceptBtnId) {
+                var canvas = document.getElementById(canvasId);
+                if (!canvas) {
+                    console.error("Canvas element with ID " + canvasId + " not found.");
+                    return;
+                }
 
-        signaturePad.addEventListener('mousedown', () => isDrawing = true);
-        signaturePad.addEventListener('mouseup', () => isDrawing = false);
-        signaturePad.addEventListener('mousemove', draw);
+                var signaturePad = new SignaturePad(canvas);
+                signaturePads.push(signaturePad);
 
-        function draw(event) {
-            if (!isDrawing) return;
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#000';
-            ctx.lineTo(event.clientX - signaturePad.offsetLeft, event.clientY - signaturePad.offsetTop);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(event.clientX - signaturePad.offsetLeft, event.clientY - signaturePad.offsetTop);
-        }
+                var cancelBtn = document.getElementById(cancelBtnId);
+                if (cancelBtn) {
+                    cancelBtn.addEventListener("click", function() {
+                        signaturePad.clear();
+                    });
+                } else {
+                    console.error("Cancel button with ID " + cancelBtnId + " not found.");
+                }
 
-        function clearSignature() {
-            ctx.clearRect(0, 0, signaturePad.width, signaturePad.height);
-        }
+                var acceptBtn = document.getElementById(acceptBtnId);
+                if (acceptBtn) {
+                    acceptBtn.addEventListener("click", function() {
+                        if (signaturePad.isEmpty()) {
+                            alert("Please provide a signature first.");
+                        } else {
+                            var dataURL = signaturePad.toDataURL();
+                            console.log("Signature accepted:", dataURL);
+                        }
+                    });
+                } else {
+                    console.error("Accept button with ID " + acceptBtnId + " not found.");
+                }
+            }
 
-        function acceptSignature() {
-            // Handle signature acceptance logic
+            // Initialize signature pads
+            initializeSignaturePad("signature-pad-1", "cancel-1", "accept-1");
+            initializeSignaturePad("signature-pad-2", "cancel-2", "accept-2");
+            initializeSignaturePad("signature-pad-3", "cancel-3", "accept-3");
+
+            // Personal relief section handling
+            var personalReliefYes = document.getElementById("personal-relief-yes");
+            var personalReliefSection = document.getElementById("personal-relief-section");
+
+            if (personalReliefYes && personalReliefSection) {
+                personalReliefYes.addEventListener("change", function() {
+                    personalReliefSection.style.display = this.checked ? "block" : "none";
+                });
+            } else {
+                if (!personalReliefYes) {
+                    console.error("Personal relief 'Yes' radio button not found.");
+                }
+                if (!personalReliefSection) {
+                    console.error("Personal relief section not found.");
+                }
+            }
+
+            var personalReliefNo = document.getElementById("personal-relief-no");
+            if (personalReliefNo) {
+                personalReliefNo.addEventListener("change", function() {
+                    personalReliefSection.style.display = !this.checked ? "none" : "block";
+                });
+            } else {
+                console.error("Personal relief 'No' radio button not found.");
+            }
+        });
+
+        function clearSignature(id) {
+            var signaturePad = signaturePads.find(function(pad) {
+                return pad._canvas.id === id;
+            });
+
+            if (!signaturePad) {
+                console.error("Signature pad with ID " + id + " not found.");
+                return;
+            }
+
+            signaturePad.clear();
         }
     </script>
-
-</section>  
+</section>

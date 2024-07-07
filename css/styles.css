@@ -210,6 +210,17 @@ form :where(input) {
     font-family: 'Montserrat', arial, serif;
 }
 
+.btn-group [class*="btn-submit"] {
+    background-color: #00ad3b;
+    border-radius: 8px;
+    border: none;
+    width: 100px;
+    height: 40px;
+    margin-left: 25px;
+    color: white;
+    font-family: 'Montserrat', arial, serif;
+}
+
 
 
 

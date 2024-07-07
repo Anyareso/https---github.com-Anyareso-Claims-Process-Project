@@ -1,21 +1,44 @@
+#page-three {
+    padding: 40px;
+}
 .form-group a {
     text-decoration: none;
 }
 .signature-box {
     width:300px;
-    height:200px;
+    height:210px;
     border-radius: 10px;
-    padding: 20px;
+    padding: 10px;
     /* text-align: center; */
     align-items: center;
     background: #595a5a;
 }
-.signature-pad {
-    border: 1px solid #fff;
-    height: 100px;
-    width: 200px;
-    margin: 10px 30px;
+.signature-pad { 
+    width: 250px;   
+    height: 150px;
+    margin: 10px 20px;
     background: #fff;
+}
+.personal-relief-request-signatures {
+    display: flex;
+    flex-direction: row;
+}
+.personal-relief-request-signatures #first-signature {
+    margin-right: 10%;
+}
+input {
+    height: 30px;
+    padding: 0 1em;
+    border-radius: 7px;
+    border: 3px solid #2c2e3a;
+    background-color: #f4f4f4;
+    font-family: 'Montserrat', arial, serif;
+}
+#client-name {
+    width: 300px;
+}
+.lowercase-list {
+    list-style-type: lower-alpha;
 }
 .buttons {
     display: flex;
@@ -23,6 +46,7 @@
     width: 25px;
     height: 20px;
     font-family: 'Montserrat', arial, serif;
+    cursor: pointer;
 }
 .buttons .cancel {
     background-color: #ccc;
@@ -32,5 +56,5 @@
     background-color: #007bff;
     color: #fff;
     border: none;
-    margin-left: 25px;
+    margin-left: 180px;
 }

@@ -75,8 +75,8 @@
   
   /* GALLERY VIEW */
   .gallery-view {
-    height: 50vh;
-    width: 50vw;
+    height: 30vh;
+    width: 30vw;
     position: absolute;
     background: #000000;
     inset: 0;
@@ -92,7 +92,7 @@
     transform: translateX(0);
   }
   .gallery-view img {
-    height: 40vh;
+    height: 20vh;
     object-fit: contain;
   }
   .gallery-view button {

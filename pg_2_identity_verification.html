@@ -1,7 +1,7 @@
 <section id="page_two">
     <style>
         @import "css/styles.css";
-        /* @import "css/camera-styles.css"; */
+        @import "css/camera-styles.css";
     </style>
 
     <div class="bg-svg"></div>
@@ -48,19 +48,19 @@
       <!-- End of camera section -->
 
     <!-- Stream the video via webcam  -->
-    <div class="video-wrap">
-      <video id="video" playsinline autoplay></video>
+    <div class="identity-ver">
+      <div class="video-wrap">
+        <video id="video" playsinline autoplay></video>
+        <!-- Trigger canvas web API -->
+        <div class="controller">
+          <button id="snap">Capture</button>
+        </div>
+      </div>
+      <div class="canvas-container">
+        <!-- Webcam video snapshot -->
+        <canvas id="canvas"></canvas>
+      </div>
     </div>
-
-    <!-- Trigger canvas web API -->
-     <div class="controller">
-      <button id="snap">Capture</button>
-     </div>
-
-     <!-- Webcam video snapshot -->
-      <canvas id="canvas" width="640" height="320"></canvas>
-
-
     <div class="btn-group">
         <button type="button" class="btn-prev" disabled>Back</button>
         <button type="button" class="btn-next">Next Step</button>
@@ -78,7 +78,7 @@
       const constraints = {
         audio: false,
         video:{
-          width: 640, height: 320
+          width: 320, height: 320
         }
       }
 
@@ -105,7 +105,7 @@
       // Draw Image
       var context = canvas.getContext('2d');
       snap.addEventListener("click", function() {
-        context.drawImage(video, 0, 0, 640, 480);
+        context.drawImage(video, 0, 0, 320, 320);
       })
 
     </script>

@@ -159,28 +159,31 @@
 
             // Personal relief section handling
             var personalReliefYes = document.getElementById("personal-relief-yes");
+            var personalReliefNo = document.getElementById("personal-relief-no");
             var personalReliefSection = document.getElementById("personal-relief-section");
 
-            if (personalReliefYes && personalReliefSection) {
+            if (personalReliefYes && personalReliefNo && personalReliefSection) {
                 personalReliefYes.addEventListener("change", function() {
-                    personalReliefSection.style.display = this.checked ? "block" : "none";
+                    if (this.checked) {
+                        personalReliefSection.style.display = "block";
+                    }
+                });
+
+                personalReliefNo.addEventListener("change", function() {
+                    if (this.checked) {
+                        personalReliefSection.style.display = "none";
+                    }
                 });
             } else {
                 if (!personalReliefYes) {
                     console.error("Personal relief 'Yes' radio button not found.");
                 }
+                if (!personalReliefNo) {
+                    console.error("Personal relief 'No' radio button not found.");
+                }
                 if (!personalReliefSection) {
                     console.error("Personal relief section not found.");
                 }
-            }
-
-            var personalReliefNo = document.getElementById("personal-relief-no");
-            if (personalReliefNo) {
-                personalReliefNo.addEventListener("change", function() {
-                    personalReliefSection.style.display = !this.checked ? "none" : "block";
-                });
-            } else {
-                console.error("Personal relief 'No' radio button not found.");
             }
         });
 

@@ -1,9 +1,9 @@
-  canvas {
+  /* canvas {
     /* position: absolute;
     inset: 0; */
-    display: none;
-  }
-  button {
+    /* display: none; 
+    } */
+  /* button {
     border: 0;
     outline: none;
     background: #00000070;
@@ -20,23 +20,55 @@
     -moz-transition: 0.3s ease-in;
     -ms-transition: 0.3s ease-in;
     -o-transition: 0.3s ease-in;
-  }
+  } */
   
   /* Camera Container */
-  .camera-ctn {
+  /* .camera-ctn {
     position: relative;
     background: #000000;
     width: 480px;
   }
   .camera-view video {
-    height: 480px;
-    width: 640px;
+    height: 640px;
+    width: 320px;
     object-fit: cover;
     transform: scaleX(-1);
+  } */
+  .video-wrap {
+    background-color: #696969;
+    border-radius: 10px;
+    width: 350px;
+    height: 350px;
+    padding: 10px 10px 50px 10px;
+  }
+  #video {
+    /* border: 3px solid #f10c8a; */
+    border-radius: 10px;
+    width: 350px;
+    height: 350px;
+  }
+  #canvas {
+    border: 3px solid #f1ee0c;
+    border-radius: 10px;
+    width: 320px;
+    height: 320px;
+    margin-left: 50px;
+  }
+  .identity-ver{
+    display: flex;
+  }
+  #snap {
+    margin-top: 10px;
+    margin-left: 140px;
+    border-radius: 8px;
+    width: 80px;
+    height: 30px;
+    margin-top: 5px;
+    font-family: 'Montserrat', arial, serif;
   }
   
   /* CAMERA BOTTOM */
-  .camera-bottom {
+  /* .camera-bottom {
     height: 200px;
     background: #706e6e;
     position: absolute;
@@ -45,11 +77,11 @@
     padding: 0 5px;
     display: grid;
     place-items: center;
-  }
+  } */
 
   
   /* SHUTTER CONTAINER */
-  .shutter-ctn {
+  /* .shutter-ctn {
     display: flex;
     align-items: center;
     justify-content: space-around;
@@ -71,10 +103,10 @@
   }
   .shutter:active {
     transform: scale(0.8);
-  }
+  } */
   
   /* GALLERY VIEW */
-  .gallery-view {
+  /* .gallery-view {
     height: 30vh;
     width: 30vw;
     position: absolute;
@@ -84,10 +116,10 @@
     justify-content: center;
     align-items: center;
     transition: 0.4s;
-    transform: translateX(40vw);
+    transform: translateX(40vw); */
     /* transform: translateY(-40vw); */
     /* margin-top: -37.5%; */
-  }
+  /* }
   .gallery-view.show-gallery {
     transform: translateX(0);
   }
@@ -108,4 +140,4 @@
   .gallery-view button#close-gallery {
     left: 5%;
     top: 5%;
-  }
+  } */

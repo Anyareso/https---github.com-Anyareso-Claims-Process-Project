@@ -11,10 +11,15 @@ body {
 .container-background {
     min-height: 100vh;
 }
+.content{
+    background-color: #fff;
+    width: 999px;
+    height: 700px;
+    border-radius: 0 10px 10px 0;
+    padding: 40px;
+}
 
 /* ==> Progress */
-
-
 
 .progress {
     background-color: #2c2e3a;
@@ -52,8 +57,6 @@ p.step-description {
     justify-content: center;
     padding-inline-start: 0px;
     gap: 4em;
-
-
 }
 .progress ul.progress-steps li {
     position: relative;
@@ -66,17 +69,13 @@ p.step-description {
     position: relative;
     width: 40px;
     height: 40px;
-
     font-size: 12px;
-
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 1em;
     border-radius: 50%;
-
     border: 2px solid;
-
 }
 .logo {
     font-size: 41.6px;
@@ -130,7 +129,6 @@ form > div > div:not(.row,.btn-group){
 
 form :where(.row){
     margin-bottom: 2em;
-
 }
 form :where(input) {
     height: 30px;
@@ -143,14 +141,14 @@ form :where(input) {
 }
 
 .form-step{
-    width: 999px;
-    height: 700px;
+    /* width: 999px;
+    height: 700px; */
     border-radius: 0 10px 10px 0;
 }
 .form-one {
     flex: 1;
-    padding: 40px;
-    background-color: #fff;
+    /* padding: 40px; */
+    /* background-color: #fff; */
     
 }
 .form-one .progress {
@@ -216,7 +214,7 @@ form :where(input) {
     border: none;
     width: 100px;
     height: 40px;
-    margin-left: 25px;
+    margin-left: 250px;
     color: white;
     font-family: 'Montserrat', arial, serif;
 }

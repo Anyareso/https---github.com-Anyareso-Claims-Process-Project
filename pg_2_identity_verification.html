@@ -1,65 +1,75 @@
-<section id="page_two">
-    @import "css/styles.css";
-    @import "css/camera-styles.css";
-  <div class="bg-svg"></div>
-  <h3>Identity Verification</h3>
-  <p>Please enable your camera in order to take a selfie. Remember to look straight into the camera.</p>
-  
-  <div class="identity-ver">
-      <div class="video-wrap">
-          <video id="video" playsinline autoplay></video>
-          <div class="controller">
-              <button id="snap">Capture</button>
-          </div>
-      </div>
-      <div class="canvas-container">
-          <canvas id="canvas" height="320" width="320"></canvas>
-      </div>
-  </div>
-  
-  <div class="btn-group">
-      <button type="button" class="btn-prev" disabled>Back</button>
-      <button type="button" class="btn-next">Next Step</button>
-  </div>
-  
-  <script>
-      'use strict';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity Verification</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/camera-styles.css">
+</head>
+<body>
+    <section id="page_two">
+        <div class="bg-svg"></div>
+        <h3>Identity Verification</h3>
+        <p>Please enable your camera in order to take a selfie. Remember to look straight into the camera.</p>
+        
+        <div class="identity-ver">
+            <div class="video-wrap">
+                <video id="video" playsinline autoplay></video>
+                <div class="controller">
+                    <button id="snap">Capture</button>
+                </div>
+            </div>
+            <div class="canvas-container">
+                <canvas id="canvas" width="320" height="320"></canvas>
+            </div>
+        </div>
+        
+        <div class="btn-group">
+            <button type="button" class="btn-prev" disabled>Back</button>
+            <button type="button" class="btn-next">Next Step</button>
+        </div>
+        
+        <script>
+            'use strict';
 
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      const snap = document.getElementById('snap');
-      const context = canvas.getContext('2d');
-      
-      const constraints = {
-          audio: false,
-          video: {
-              width: 320, 
-              height: 320
-          }
-      };
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const snap = document.getElementById('snap');
+            const context = canvas.getContext('2d');
+            
+            const constraints = {
+                audio: false,
+                video: {
+                    width: 320, 
+                    height: 320
+                }
+            };
 
-      // Access Webcam
-      async function init() {
-          try {
-              const stream = await navigator.mediaDevices.getUserMedia(constraints);
-              handleSuccess(stream);
-          } catch (e) {
-              console.error('navigator.getUserMedia error:', e);
-          }
-      }
+            // Access Webcam
+            async function init() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    handleSuccess(stream);
+                } catch (e) {
+                    console.error('navigator.getUserMedia error:', e);
+                }
+            }
 
-      // Success
-      function handleSuccess(stream) {
-          window.stream = stream;
-          video.srcObject = stream;
-      }
+            // Success
+            function handleSuccess(stream) {
+                window.stream = stream;
+                video.srcObject = stream;
+            }
 
-      // Load init
-      init();
+            // Load init
+            init();
 
-      // Draw Image
-      snap.addEventListener("click", function () {
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      });
-  </script>
-</section>
+            // Draw Image
+            snap.addEventListener("click", function () {
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            });
+        </script>
+    </section>
+</body>
+</html>

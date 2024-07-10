@@ -34,58 +34,57 @@
                         <ul class="progress-steps">
                             <li class="step active">
                                 <span>1</span>
-                                <p>Personal Information</p>
+                                <p><a href="#" data-section="pg_1_personal_information.html">Personal Information</a></p>
                             </li>
                             <li class="step">
                                 <span>2</span>
-                                <p>Identity Verification</p>
+                                <p><a href="#" data-section="pg_2_identity_verification.html">Identity Verification</a></p>
                             </li>
                             <li class="step">
                                 <span>3</span>
-                                <p>Attach Documents</p>
+                                <p><a href="#" data-section="pg_3_attach_documents.html">Attach Documents</a></p>
                             </li>
                             <li class="step">
                                 <span>4</span>
-                                <p>Submission</p>
+                                <p><a href="#" data-section="pg_4_submission.html">Submission</a></p>
                             </li>
                         </ul>
                     </div>
 
-                    <section id="page_one">
-                        <form action="">
-                            <div class="form-one form-step">
-                                <div class="bg-svg"></div>
-                                <h3>Your Personal Information</h3>
-                                <p>Please fill out the fields below:</p>
-                                <div>
-                                    <input type="text" placeholder="Full Name" id="long-input-box">
-                                </div>
-                                <div class="row">
-                                    <input type="number" placeholder="ID Number" id="id-number">
-                                    <input type="tel" placeholder="Phone Number" id="phone-number">
-                                </div>
-                                <div>
-                                    <input type="text" placeholder="KRA Pin" id="kra-pin">
-                                </div>
-                                <div class="row">
-                                    <input type="number" placeholder="Address" id="address">
-                                    <input type="number" placeholder="Code" id="code">
-                                    <input type="text" placeholder="Town" id="town">
-                                </div>
-                                <div>
-                                    <input type="email" placeholder="Email Address" id="long-input-box">
-                                </div>
-                                <div class="btn-group">
-                                    <button type="button" class="btn-prev" disabled>Back</button>
-                                    <button type="button" class="btn-next">Next Step</button>
-                                </div>
-                            </div>                        
-                        </form>
-                    </section>
+                    <div class="content" id="main-content">
+                        <!-- Main content will be loaded here -->
+                    </div>
 
                 </div>
             </div>
-        </div>  
-    </body>
+        </div> 
+    </div> 
 </body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const links = document.querySelectorAll('.progress-steps a');
+        const mainContent = document.getElementById('main-content');
+
+        links.forEach(link => {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const sectionUrl = this.getAttribute('data-section');
+
+                fetch(sectionUrl)
+                    .then(response => response.text())
+                    .then(data => {
+                        mainContent.innerHTML = data;
+                    })
+                    .catch(error => console.error('Error loading section:', error));
+            });
+        });
+
+        // Optionally, load the first section by default
+        if (links.length > 0) {
+            links[0].click();
+        }
+    });
+</script>
+
 </html>

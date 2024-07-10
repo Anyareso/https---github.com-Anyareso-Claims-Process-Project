@@ -4,30 +4,51 @@
             @import "css/styles.css";
             @import "css/identity-verification.css";
         </style>
+        <script src="https://kit.fontawesome.com/a076d05399.js"></script>
     </head>
 
     <div class="bg-svg"></div>
     <h3>Attach Documents</h3>
     <p>Upload the following documents. (ID front and back, KRA Pin Certificate)</p>
+    <div class="upload-container">
+        <div class="upload-files">
+            <label for="input-file" id="drop-area">
+                    <img src="images/508-icon.png" alt="">
+                    <p>Drag and drop your files here or </p>
+                    <input type="file" accept="image/**" id="input-file" class="browse-btn">
+            </label>
+        </div>
     
-    <div class="upload-files">
-        <label for="input-file" id="drop-area">
-                <img src="images/508-icon.png" alt="">
-                <p>Drag and drop your files here or </p>
-                <label for="browse" class="browse-btn">
-                    Browse Files
-                </label>
-                <input type="file" accept="image/**" id="input-file" name="Browse files">
-        </label>
+        <div class="uploaded-files">
+            <p>Uploaded Files:</p>
+            <div class="list">
+                <li class="in-prog">
+                    <div class="col">
+                        <img src="images/iMZ3r9Q6k81RSz5f.png" alt="">
+                    </div>
+                    <div class="col">
+                        <div class="file-name">
+                            <div class="name">File Name Here</div>
+                            <span>50%</span>
+                        </div>
+                        <div class="file-progress">
+                            <span></span>
+                        </div>
+                        <div class="file-size">2.2 MB</div>
+                    </div>            
+                    <div class="col">
+                        <!-- exit and right icon -->
+                        <p class="tick">&#10003;</p>
+                        <p class="cross">&#10005;</p>
+                    </div>
+                </li>
+            </div>
+        </div>
     </div>
-
-    <div class="uploaded-files">
-        <p>Uploaded Files:</p>
-    </div>
-
     <div class="btn-group">
         <button type="button" class="btn-prev" disabled>Back</button>
         <button type="button" class="btn-next">Next Step</button>
     </div>
 <div>
+<script src="upload_files.js"></script>
 </section>

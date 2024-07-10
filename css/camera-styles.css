@@ -48,14 +48,22 @@
     height: 350px;
   }
   #canvas {
-    border: 3px solid #f1ee0c;
+    /* border: 3px solid #f1ee0c; */
     border-radius: 10px;
-    width: 320px;
-    height: 320px;
-    margin-left: 50px;
+    width: 350px;
+    height: 350px;
+  }
+  .canvas-container {
+    background-color: #DCDCDC;
+    padding: 10px 10px 50px 10px;
+    border-radius: 10px;
+    width: 350px;
+    height: 350px;
   }
   .identity-ver{
     display: flex;
+    justify-content: space-around;
+    width: 850px;
   }
   #snap {
     margin-top: 10px;

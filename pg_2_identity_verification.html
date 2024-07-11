@@ -9,44 +9,7 @@
         <p>Please enable your camera in order to take a selfie. Remember to look straight into the camera.</p>
     <div>
     <!-- Camera Section -->
-    <!-- <div class="camera-ctn">
-        <canvas id="canvas"> </canvas>
-        <div class="camera-view">
-          <video id="camera-stream" autoplay loop muted>
-            <source src="" >
-          </video>
-        </div>
-        <div class="camera-bottom">
-          <div class="inner">
-            <div class="modes">
-              <button class="active">
-                PHOTO
-              </button>
-            </div>
-            <div class="shutter-ctn">
-              <button id="photos-btn" class="previous-shots">
-              </button>
-              <button id="shutter" class="shutter">
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     
-      <div class="gallery-view">
-        <button id="prev">
-          PREV
-        </button>
-        <img data-index="0" src="" alt="current viewed img">
-        <button id="next">
-          NEXT
-        </button>
-        <button id="close-gallery">
-          GO BACK
-        </button>
-      </div> -->
-      <!-- End of camera section -->
-
     <!-- Stream the video via webcam  -->
     <div class="identity-ver">
       <div class="video-wrap">
@@ -57,56 +20,62 @@
         </div>
       </div>
       <div class="canvas-container">
-        <!-- Webcam video snapshot -->
-        <canvas id="canvas"></canvas>
+        <h4>Check Selfie</h4>
+        <p>Make sure your selfie clearly shows your face</p>
+        <canvas id="canvas" width="300" height="300"></canvas>
+        <div class="canvas-btn">
+          <button id="redo">Redo</button>
+          <button id="confirm">Confirm</button>
+        </div>
       </div>
     </div>
+  
+  </br>
+
     <div class="btn-group">
         <button type="button" class="btn-prev" disabled>Back</button>
         <button type="button" class="btn-next">Next Step</button>
     </div>
 
     <script>
-
       'use strict';
 
       const video = document.getElementById('video');
       const canvas = document.getElementById('canvas');
       const snap = document.getElementById('snap');
-      const errorMsgElement = document.getElementById('span#ErrorMsg');
-
+      const context = canvas.getContext('2d');
+      
       const constraints = {
-        audio: false,
-        video:{
-          width: 320, height: 320
-        }
-      }
+          audio: false,
+          video: {
+              width: 320, 
+              height: 320
+          }
+      };
 
       // Access Webcam
       async function init() {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia(constraints);
-          handleSuccess(stream);
-        }
-        catch(e) {
-          errorMsgElement.innerHTML = `navigator.getUserMedia.error:${e.toString()}`;
-        }
+          try {
+              const stream = await navigator.mediaDevices.getUserMedia(constraints);
+              handleSuccess(stream);
+          } catch (e) {
+              console.error('navigator.getUserMedia error:', e);
+          }
       }
 
-      // Success      
-      function handleSuccess(stream){
-        window.stream = stream;
-        video.srcObject = stream;
+      // Success
+      function handleSuccess(stream) {
+          window.stream = stream;
+          video.srcObject = stream;
       }
 
       // Load init
       init();
 
       // Draw Image
-      var context = canvas.getContext('2d');
-      snap.addEventListener("click", function() {
-        context.drawImage(video, 0, 0, 320, 320);
-      })
+      snap.addEventListener("click", function () {
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      });
+  </script>
 
-    </script>
 </section>

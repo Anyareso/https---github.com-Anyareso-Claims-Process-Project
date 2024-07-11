@@ -1,8 +1,8 @@
 2. Identity verification page
 
-- Style the image capture area
-- Style the capture button
-- Style check image preview i.e. placing it on the right
+- Style the image capture area (done)
+- Style the capture button (done)
+- Style check image preview i.e. placing it on the right (done)
 - Button functionality under the 'redo' and 'confirm' buttons
 
 3. Attach documents page

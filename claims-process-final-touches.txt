@@ -3,7 +3,7 @@
 - Style the image capture area (done)
 - Style the capture button (done)
 - Style check image preview i.e. placing it on the right (done)
-- Button functionality under the 'redo' and 'confirm' buttons
+- Button functionality under the 'redo' and 'confirm' buttons(done)
 
 3. Attach documents page
 

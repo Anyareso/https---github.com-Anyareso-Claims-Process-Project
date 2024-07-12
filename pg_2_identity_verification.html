@@ -45,6 +45,8 @@
       const canvas = document.getElementById('canvas');
       const snap = document.getElementById('snap');
       const context = canvas.getContext('2d');
+      const redo = document.getElementById('redo');
+      const confirm = document.getElementById('confirm');
       
       const constraints = {
           audio: false,
@@ -77,6 +79,25 @@
       snap.addEventListener("click", function () {
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
       });
-  </script>
+
+      // Clearing canvas
+      redo.addEventListener("click", function () {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+      });
+
+      // Saving the image
+      confirm.addEventListener("click", function () {
+          const imageData = canvas.toDataURL();
+          const link = document.createElement('a');
+          link.href = imageData;
+          link.download = 'selfie.png';
+          link.click();
+          // const image = new Image();
+          // image.src = imageData;
+          // // Now you can use the image as needed
+          // // For example, you can append it to the page
+          // document.body.appendChild(image);
+      });
+    </script>
 
 </section>

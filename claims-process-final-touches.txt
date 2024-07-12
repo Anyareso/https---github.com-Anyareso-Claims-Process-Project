@@ -7,11 +7,13 @@
 
 3. Attach documents page
 
-- Style the 'choose files' button
-- State how many files can be uploaded and the type of files supported
-- Update progress of the file as it is being uploaded
-- Functionality for the uploaded files section i.e. enable file preview once files are uploaded
-- Enable functionality option where one may delete a file once uploaded
+- Style the 'choose files' button (done)
+- State how many files can be uploaded (backend)
+- State the type of files supported (done)
+- Drag and drop functinality add
+- Update progress of the file as it is being uploaded 
+- Functionality for the uploaded files section i.e. enable file preview once files are uploaded (done)
+- Enable functionality option where one may delete a file once uploaded (done)
 
 4. Submission page
 

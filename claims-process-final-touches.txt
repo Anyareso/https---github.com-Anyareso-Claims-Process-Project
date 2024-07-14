@@ -13,13 +13,13 @@
 - Drag and drop functinality add (done)
 - Update progress of the file as it is being uploaded (done *review once backend integrated)
 - Functionality for the uploaded files section i.e. enable file preview once files are uploaded (done)
-- Enable functionality option where one may delete a file once uploaded (done)
+- Enable functionality option where one may delete a file once uploaded (done) 
 
 4. Submission page
 
-- Make 'sign here' box color same as design
-- Style and add functionality to cancel and accept buttons
-- Enable one to make draw their signature
+- Make 'sign here' box color same as design (done)
+- Style and add functionality to cancel and accept buttons (done)
+- Enable one to make draw their signature (done)
 - Tax relief option to display
 - Personal relief options to be check boxes
 - Display personal relief page if yes

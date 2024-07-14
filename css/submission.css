@@ -15,7 +15,7 @@
     padding: 10px;
     /* text-align: center; */
     align-items: center;
-    background: #595a5a;
+    background: #DCDCDC;
 }
 .signature-pad { 
     width: 250px;   
@@ -59,11 +59,12 @@ input {
     cursor: pointer;
 }
 .buttons .cancel {
-    background-color: #ccc;
+    background-color: #A9A9A9;
+    color: #fff;
     border: none;
 }
 .buttons .accept {
-    background-color: #007bff;
+    background-color: #3471d6;
     color: #fff;
     border: none;
     margin-left: 180px;

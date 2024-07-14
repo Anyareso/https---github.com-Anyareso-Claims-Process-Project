@@ -206,7 +206,7 @@ input::-webkit-inner-spin-button {
     border-radius: 8px;
     width: 80px;
     height: 30px;
-    margin-top: 5px;
+    margin-top: 10px;
     font-family: 'Montserrat', arial, serif;
 }
 
@@ -216,6 +216,7 @@ input::-webkit-inner-spin-button {
     border: none;
     width: 100px;
     height: 35px;
+    margin-top: 10px;
     margin-left: 600px;
     color: white;
     font-family: 'Montserrat', arial, serif;

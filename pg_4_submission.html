@@ -2,115 +2,64 @@
     <style>
         @import "css/styles.css";
         @import "css/submission.css";
+        @import "css/modal.css"
     </style>
 
-    <!-- final submission page -->
-    <div class="bg-svg"></div>
-        <h3>Submission</h3>
-        <p>Please sign and accept the data protection clause in order for you to submit successfully.</p>
+    <div id="personal-relief-section" >
+        <!-- final submission page -->
+        <div class="bg-svg"></div>
+            <h3>Submission</h3>
+            <p>Please sign and accept the data protection clause in order for you to submit successfully.</p>
 
-    <!-- signature section -->
-    <div class="signature-box">
-        <label for="signature">Sign Here:</label>
-        <canvas id="signature-pad-1" class="signature-pad" width="250" height="150"></canvas>
-        <div class="buttons">
-            <button class="cancel" id="cancel-1">Cancel</button>
-            <button class="accept" id="accept-1">Accept</button>
+        <!-- signature section -->
+        <div class="signature-box">
+            <label for="signature">Sign Here:</label>
+            <canvas id="signature-pad-1" class="signature-pad" width="250" height="150"></canvas>
+            <div class="buttons">
+                <button class="cancel" id="cancel-1">Cancel</button>
+                <button class="accept" id="accept-1">Accept</button>
+            </div>
+        </div>    
+
+        <!-- personal relief section -->
+        <div class="form-group">
+            <label>Do you want Personal Relief?</label>
+            <input type="radio" name="personal-relief" id="personal-relief-yes">
+            <label for="personal-relief-yes">Yes</label>
+            <input type="radio" name="personal-relief" id="personal-relief-no">
+            <label for="personal-relief-no">No</label>
         </div>
-    </div>    
+            
 
-    <!-- personal relief section -->
-    <div class="form-group">
-        <label>Do you want Personal Relief?</label>
-        <input type="radio" name="personal-relief" id="personal-relief-yes">
-        <label for="personal-relief-yes">Yes</label>
-        <input type="radio" name="personal-relief" id="personal-relief-no">
-        <label for="personal-relief-no">No</label>
-    </div>
-
-    <details id="personal-relief-section" style="display: none;">
-        <summary>
-            Personal Relief Details
-        </summary> 
-        <div class="form-group personal-relief-request">
-            <h4>Personal Relief Request</h4>
-            <p>
-                I <input id="client-name" type="text"></hr> ID No. <input type="number"></hr> being an annuitant under the Sanlam Insurance Limited (‘Sanlam’) Policy/Annuity No. <input type="text"></hr> do hereby confirm that the annuity payout is my main source of income and will claim for the applicable personal relief on the said income from Sanlam and not from other source for tax purposes.
-
-                I, the above mentioned and undersigned having taken up my right to claim for tax relief and hereby indemnify Sanlam Life Insurance Limited according to the terms set forth here follows:
-
-                </br>
-
-                <ol>
-                    <li>
-                        I undertake that Sanlam shall not bear ultimate responsibility, whether in contract, or (including negligence), breach of statutory duty, equity or otherwise, to myself in any respect for any principal tax, penalties and interest suffered by myself howsoever arising from the subject matter claim.
-                    </li>
-                    <li>
-                        I undertake to indemnify and hold Sanlam life insurance harmless from and against any and all loss suffered by the Company                                         
-                        howsoever arising in regard to the subject matter claim.
-                    </li>
-                    <li>I agree that - 
-                        <ol class="lowercase-list">
-                            <li>
-                                This declaration shall apply to my personal representatives, successors, assigns in title and any|or all authorised representatives.
-                            </li>
-                            <li>
-                                Nothing in this declaration shall exclude or in any way limit Sanlam Life insurance liability to fraud or any other liability to the extent such liability may not be excluded or limited as a matter of the Laws of Kenya.
-                            </li>
-                            <li>
-                                If any provision of this declaration is prohibited by Law or judged in a Court to be unlawful, void or unenforceable, the provision shall, to the extent required, be severed from this Agreement and rendered ineffective as far as possible without modifying the remaining provisions of this Agreement and shall not in any way affect any other circumstances of or the validity or enforcement of this Agreement.
-                            </li>
-                        </ol>
-                    </li>
-                </ol>
-
-                </br>
-
-                I/We hereby declare the truth and correctness of all the statements and particulars entered in this application and that I have not withheld any material information, and that my/our answers herein are in my/our full knowledge and have been written by me/us or with my/our full authority.             
-            </p>
-
-            </br>
-
-            <div class="personal-relief-request-signatures">
-                <!-- first annuitants signature -->
-                <div class="signature-box" id="first-signature">
-                    <label for="signature">Sign Here:</label>
-                    <canvas id="signature-pad-2" class="signature-pad" width="250" height="150"></canvas>
-                    <div class="buttons">
-                        <button class="cancel" id="cancel-2">Cancel</button>
-                        <button class="accept" id="accept-2">Accept</button>
-                    </div>
-                </div>
-                
-
-                <!-- second annuitants signature -->
-                <div class="signature-box" id="second-signature">
-                    <label for="signature">Sign Here:</label>
-                    <canvas id="signature-pad-3" class="signature-pad" width="250" height="150"></canvas>
-                    <div class="buttons">
-                        <button class="cancel" id="cancel-3">Cancel</button>
-                        <button class="accept" id="accept-3">Accept</button>
-                    </div>
-                </div>
-            </div>            
-        </div> 
+        </br>
         
-    </details>
+        <!-- data protection checbox -->
+        <div class="form-group">
+            <input type="checkbox" id="data-protection">
+            <label for="data-protection">I agree that I have read and understood the  <a href="#" id="dataProtectionLink">Data Protection Notice</a>.</label>
+        </div>
+       
 
-    </br>
-    
-    <!-- data protection checbox -->
-    <div class="form-group">
-        <input type="checkbox" id="data-protection">
-        <label for="data-protection">I agree that I have read and understood the <a href="#">Data Protection Notice</a>.</label>
-    </div>
+        <div id="dataProtectionModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Data Protection Agreement</h2>
+                <p>Please read and accept our data protection terms before proceeding.</p>
+                <p><!-- Add more content here as needed --></p>
+                <div class="modal-buttons">
+                    <button class="complete" id="completeButton">Complete</button>
+                    <button class="reject" id="rejectButton">Reject</button>
+                </div>
+            </div>
+        </div>
 
-    </br>
+        </br>
 
-    <div class="btn-group">
-        <button type="button" class="btn-prev">Back</button>
-        <button type="button" class="btn-submit">Submit</button>
-    </div>
+        <div class="btn-group">
+            <button type="button" class="btn-prev">Back</button>
+            <button type="button" class="btn-submit">Submit</button>
+        </div>
+        </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
     <script src="js/signature-pad.js"></script>
@@ -154,9 +103,7 @@
 
             // Initialize signature pads
             initializeSignaturePad("signature-pad-1", "cancel-1", "accept-1");
-            initializeSignaturePad("signature-pad-2", "cancel-2", "accept-2");
-            initializeSignaturePad("signature-pad-3", "cancel-3", "accept-3");
-
+    
             // Personal relief section handling
             var personalReliefYes = document.getElementById("personal-relief-yes");
             var personalReliefNo = document.getElementById("personal-relief-no");
@@ -166,6 +113,15 @@
                 personalReliefYes.addEventListener("change", function() {
                     if (this.checked) {
                         personalReliefSection.style.display = "block";
+                        // Replace 'relief_form.html' with the URL of the new HTML page
+                        location.href = 'pg_4_submission_relief_form.html';
+                    }
+                });
+                personalReliefYes.addEventListener("change", function() {
+                    if (this.checked) {
+                        personalReliefSection.style.display = "block";
+                        console.log("Redirecting to pg_4_submission_relief_form.html");
+                        window.location.href = 'pg_4_submission_relief_form.html';
                     }
                 });
 
@@ -198,6 +154,52 @@
             }
 
             signaturePad.clear();
+        }
+    </script>
+    <script>
+        // Get the modal
+        const modal = document.getElementById("dataProtectionModal");
+
+        // Get the link that opens the modal
+        const link = document.getElementById("dataProtectionLink");
+
+        // Get the <span> element that closes the modal
+        const span = document.getElementsByClassName("close")[0];
+
+        // Get the complete and reject buttons
+        const completeButton = document.getElementById("completeButton");
+        const rejectButton = document.getElementById("rejectButton");
+
+        // When the user clicks the link, open the modal 
+        link.onclick = function(event) {
+            event.preventDefault();
+            modal.style.display = "block";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        // When the user clicks on the complete button, perform the action and close the modal
+        completeButton.onclick = function() {
+            // Perform the action for completion
+            alert("Completed");
+            modal.style.display = "none";
+        }
+
+        // When the user clicks on the reject button, perform the action and close the modal
+        rejectButton.onclick = function() {
+            // Perform the action for rejection
+            alert("Rejected");
+            modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
         }
     </script>
 </section>

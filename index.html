@@ -65,30 +65,78 @@
     document.addEventListener('DOMContentLoaded', function() {
         const links = document.querySelectorAll('.progress-steps a');
         const mainContent = document.getElementById('main-content');
+        const nextButton = document.querySelector('.btn-next');
+        const prevButton = document.querySelector('.btn-prev');
+
+        function loadSection(sectionUrl) {
+            fetch(sectionUrl)
+                .then(response => response.text())
+                .then(data => {
+                    mainContent.innerHTML = data;
+
+                    // Inject the script for the current page
+                    const scriptTag = document.createElement('script');
+                    scriptTag.src = `js/${sectionUrl.replace('.html', '.js')}`;
+                    scriptTag.type = 'text/javascript';
+                    scriptTag.onload = () => console.log(`${scriptTag.src} loaded successfully`);
+                    mainContent.appendChild(scriptTag);
+
+                    // Reinitialize event listeners for any newly loaded content
+                    initializeNavigationButtons();
+                })
+                .catch(error => console.error('Error loading section:', error));
+        }
+
+        function initializeNavigationButtons() {
+            const nextButtons = mainContent.querySelectorAll('.btn-next');
+            const prevButtons = mainContent.querySelectorAll('.btn-prev');
+            
+            nextButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const sectionUrl = this.getAttribute('data-section');
+                    if (sectionUrl) {
+                        loadSection(sectionUrl);
+                    }
+                });
+            });
+
+            prevButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const sectionUrl = this.getAttribute('data-section');
+                    if (sectionUrl) {
+                        loadSection(sectionUrl);
+                    }
+                });
+            });
+        }
 
         links.forEach(link => {
             link.addEventListener('click', function(event) {
                 event.preventDefault();
                 const sectionUrl = this.getAttribute('data-section');
-
-                fetch(sectionUrl)
-                    .then(response => response.text())
-                    .then(data => {
-                        mainContent.innerHTML = data;
-
-                        // Inject the script for the current page
-                        const scriptTag = document.createElement('script');
-                        scriptTag.src = `js/${sectionUrl.replace('.html', '.js')}`;
-                        mainContent.appendChild(scriptTag);
-                    })
-                    .catch(error => console.error('Error loading section:', error));
+                loadSection(sectionUrl);
             });
         });
 
         // Optionally, load the first section by default
         if (links.length > 0) {
             links[0].click();
-        }      
+        }
+
+        // Initialize the Next and Previous Step buttons on the main page
+        nextButton.addEventListener('click', function() {
+            const sectionUrl = this.getAttribute('data-section');
+            if (sectionUrl) {
+                loadSection(sectionUrl);
+            }
+        });
+
+        prevButton.addEventListener('click', function() {
+            const sectionUrl = this.getAttribute('data-section');
+            if (sectionUrl) {
+                loadSection(sectionUrl);
+            }
+        });
     });
 </script>
 

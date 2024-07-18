@@ -11,7 +11,7 @@
 </head>
 <body>
     <!-- This container should contain the background image -->
-    <div class="conatiner-background">    
+    <div class="container-background">    
     <!-- This container should contain the sidebar and the main content -->
         <div id="page" class="site"></div>
             <div class="container">
@@ -75,6 +75,11 @@
                     .then(response => response.text())
                     .then(data => {
                         mainContent.innerHTML = data;
+
+                        // Inject the script for the current page
+                        const scriptTag = document.createElement('script');
+                        scriptTag.src = `js/${sectionUrl.replace('.html', '.js')}`;
+                        mainContent.appendChild(scriptTag);
                     })
                     .catch(error => console.error('Error loading section:', error));
             });
@@ -83,7 +88,7 @@
         // Optionally, load the first section by default
         if (links.length > 0) {
             links[0].click();
-        }
+        }      
     });
 </script>
 

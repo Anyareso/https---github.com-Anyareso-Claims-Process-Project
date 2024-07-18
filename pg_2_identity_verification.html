@@ -1,4 +1,8 @@
 <section id="page_two">
+    <script src="js/pg_2_identity_verification.js"></script>
+    <script>
+      initCamera(); // Call the initialization function
+  </script>
     <style>
         @import "css/styles.css";
         @import "css/camera-styles.css";
@@ -34,70 +38,24 @@
   </br>
 
     <div class="btn-group">
-        <button type="button" class="btn-prev" disabled>Back</button>
-        <button type="button" class="btn-next">Next Step</button>
+        <button type="button" class="btn-prev" data-section="pg_1_personal_information.html">Back</button>
+        <button type="button" class="btn-next" data-section="pg_3_attach_documents.html">Next Step</button>
     </div>
 
-    <script>
-      'use strict';
 
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      const snap = document.getElementById('snap');
-      const context = canvas.getContext('2d');
-      const redo = document.getElementById('redo');
-      const confirm = document.getElementById('confirm');
-      
-      const constraints = {
-          audio: false,
-          video: {
-              width: 320, 
-              height: 320
+  <script>
+      document.querySelector('.btn-next').addEventListener('click', function() {
+          const sectionUrl = this.getAttribute('data-section');
+          if (sectionUrl) {
+              window.location.href = sectionUrl;
           }
-      };
-
-      // Access Webcam
-      async function init() {
-          try {
-              const stream = await navigator.mediaDevices.getUserMedia(constraints);
-              handleSuccess(stream);
-          } catch (e) {
-              console.error('navigator.getUserMedia error:', e);
-          }
-      }
-
-      // Success
-      function handleSuccess(stream) {
-          window.stream = stream;
-          video.srcObject = stream;
-      }
-
-      // Load init
-      init();
-
-      // Draw Image
-      snap.addEventListener("click", function () {
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
       });
-
-      // Clearing canvas
-      redo.addEventListener("click", function () {
-          context.clearRect(0, 0, canvas.width, canvas.height);
-      });
-
-      // Saving the image
-      confirm.addEventListener("click", function () {
-          const imageData = canvas.toDataURL();
-          const link = document.createElement('a');
-          link.href = imageData;
-          link.download = 'selfie.png';
-          link.click();
-          // const image = new Image();
-          // image.src = imageData;
-          // // Now you can use the image as needed
-          // // For example, you can append it to the page
-          // document.body.appendChild(image);
-      });
-    </script>
+      document.querySelector('.btn-prev').addEventListener('click', function() {
+            const sectionUrl = this.getAttribute('data-section');
+            if (sectionUrl) {
+                window.location.href = sectionUrl;
+            }
+        });
+  </script>
 
 </section>

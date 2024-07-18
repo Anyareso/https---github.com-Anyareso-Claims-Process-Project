@@ -28,6 +28,6 @@
 - Display data protection notice page when the link is clicked (done)
 
 Full form
-- Functionalities for 'back' and 'next' step buttons 
+- Functionalities for 'back' and 'next' step buttons (done)
 - Showing active tab on the side panel
 - Displaying step-titles for the different pages 

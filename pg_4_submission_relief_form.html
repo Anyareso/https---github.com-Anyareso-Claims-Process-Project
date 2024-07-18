@@ -45,8 +45,24 @@
         </br>
     </div>
     <div class="btn-group">
-        <button type="button" class="btn-prev">Back</button>
-        <button type="button" class="btn-next">Next Step</button>
+        <button type="button" class="btn-prev" data-section="pg_4_submission.html">Back</button>
+        <button type="button" class="btn-next" data-section="signatures.html">Next Step</button>
     </div>
+
+    <script src="js/pg_4_submission_relief_form.js"></script>
+    <script>
+        document.querySelector('.btn-next').addEventListener('click', function() {
+            const sectionUrl = this.getAttribute('data-section');
+            if (sectionUrl) {
+                window.location.href = sectionUrl;
+            }
+        });
+        document.querySelector('.btn-prev').addEventListener('click', function() {
+            const sectionUrl = this.getAttribute('data-section');
+            if (sectionUrl) {
+                window.location.href = sectionUrl;
+            }
+        });
+    </script>
 
 </section>

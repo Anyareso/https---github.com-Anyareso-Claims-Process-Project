@@ -47,6 +47,14 @@ input {
 .lowercase-list {
     list-style-type: lower-alpha;
 }
+input[type="radio"] {
+    margin-top: -1px;
+    vertical-align: middle;
+}
+input[type="checkbox"] {
+    margin-top: -1px;
+    vertical-align: middle;
+}
 
 /* Buttons */
 

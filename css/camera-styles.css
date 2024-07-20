@@ -19,6 +19,7 @@
     object-fit: contain;
     margin-left: 24px;
     margin-top: 2px;
+    transform: scaleX(-1); 
   }
   .canvas-container{
     background-color: #DCDCDC;

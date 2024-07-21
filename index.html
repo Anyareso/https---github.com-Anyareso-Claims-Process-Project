@@ -21,32 +21,25 @@
 
                         <div class="bg-svg"></div>
                         <div class="step-title">
-                            <h4>Step 1</h4>
-                            <p class="step-description" id="1">Enter your personal information in order to proceed to the next step.</p>                           
-                            <!-- <p class="step-description" id="2"><h4>Step 2</h4><br>Please complete the verification process in order to proceed to the next step.</p>
-                            <br>                            
-                            <p class="step-description" id="3"><h4>Step 3</h4><br>Attach the requested documents in order to proceed to the next step.</p>
-                            <br>
-                            <p class="step-description" id="4"><h4>Step 4</h4><br>Please sign and confirm the choices in order to submit successfully.</p>
-                            <br> -->
-
+                            <h4 id="step-title">Step 1</h4>
+                            <p class="step-description" id="step-description">Enter your personal information in order to proceed to the next step.</p>
                         </div>
                         <ul class="progress-steps">
-                            <li class="step active">
+                            <li class="step nav-link active">
                                 <span>1</span>
-                                <p><a href="#" data-section="pg_1_personal_information.html">Personal Information</a></p>
+                                <p><a href="#" data-id="personal_information" data-section="pg_1_personal_information.html">Personal Information</a></p>
                             </li>
-                            <li class="step">
+                            <li class="step nav-link">
                                 <span>2</span>
-                                <p><a href="#" data-section="pg_2_identity_verification.html">Identity Verification</a></p>
+                                <p><a href="#" data-id="identity_verification" data-section="pg_2_identity_verification.html">Identity Verification</a></p>
                             </li>
-                            <li class="step">
+                            <li class="step nav-link">
                                 <span>3</span>
-                                <p><a href="#" data-section="pg_3_attach_documents.html">Attach Documents</a></p>
+                                <p><a href="#" data-id="attach_documents" data-section="pg_3_attach_documents.html">Attach Documents</a></p>
                             </li>
-                            <li class="step">
+                            <li class="step nav-link">
                                 <span>4</span>
-                                <p><a href="#" data-section="pg_4_submission.html">Submission</a></p>
+                                <p><a href="#" data-id="submission" data-section="pg_4_submission.html">Submission</a></p>
                             </li>
                         </ul>
                     </div>
@@ -83,6 +76,7 @@
 
                     // Reinitialize event listeners for any newly loaded content
                     initializeNavigationButtons();
+
                 })
                 .catch(error => console.error('Error loading section:', error));
         }
@@ -138,6 +132,76 @@
             }
         });
     });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get all the navigation links
+        const navLinks = document.querySelectorAll('.nav-link a');
+        const stepTitle = document.getElementById('step-title');
+        const stepDescription = document.getElementById('step-description');
+
+        // Define step information
+        const stepInfo = {
+            'personal_information': {
+                title: 'Step 1',
+                description: 'Enter your personal information in order to proceed to the next step.'
+            },
+            'identity_verification': {
+                title: 'Step 2',
+                description: 'Please complete the verification process in order to proceed to the next step.'
+            },
+            'attach_documents': {
+                title: 'Step 3',
+                description: 'Attach the requested documents in order to proceed to the next step.'
+            },
+            'submission': {
+                title: 'Step 4',
+                description: 'Please sign and confirm the choices in order to submit successfully.'
+            }
+        };
+
+        // Check localStorage to see if there is an active link stored
+        const activeLinkId = localStorage.getItem('activeLinkId');
+
+        if (activeLinkId) {
+            // Find the link with the stored id and add the 'active' class
+            const activeLink = document.querySelector(`.nav-link a[data-id="${activeLinkId}"]`);
+            if (activeLink) {
+                activeLink.parentElement.parentElement.classList.add('active');
+                updateStepInfo(activeLinkId);
+            }
+        }
+
+        // Add click event listeners to each link
+        navLinks.forEach(link => {
+            link.addEventListener('click', function (event) {
+                event.preventDefault(); // Prevent default navigation
+
+                // Remove the 'active' class from all links
+                navLinks.forEach(link => link.parentElement.parentElement.classList.remove('active'));
+
+                // Add the 'active' class to the clicked link
+                this.parentElement.parentElement.classList.add('active');
+
+                // Store the clicked link's id in localStorage
+                const linkId = this.getAttribute('data-id');
+                localStorage.setItem('activeLinkId', linkId);
+
+                // Update step information
+                updateStepInfo(linkId);
+
+                // Optionally, navigate to the section
+                // window.location.href = this.getAttribute('data-section');
+            });
+        });
+
+        function updateStepInfo(linkId) {
+            const info = stepInfo[linkId];
+            stepTitle.textContent = info.title;
+            stepDescription.textContent = info.description;
+        }
+    });
+
 </script>
 
 </html>

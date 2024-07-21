@@ -1,7 +1,7 @@
 const dropArea = document.getElementById('drop-area');
 const inputFile = document.getElementById('input-file');
 const uploadedFilesList = document.getElementById('uploaded-files-list');
-const maxSize = 70 * 1024 * 1024; // change to 2 MB in bytes
+const maxSize = 2 * 1024 * 1024; // changed to 2 MB in bytes
 
 // Prevent default drag behaviors
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -124,7 +124,7 @@ const fileInput = document.getElementById('fileInput');
 
 fileInput.addEventListener('change', (e) => {
 const file = e.target.files[0];
-const maxSize = 70 * 1024 * 1024; // change to 2 MB in bytes
+const maxSize = 2 * 1024 * 1024; // changed to 2 MB in bytes
 
 if (file.size > maxSize) {
     document.getElementById('fileSizeMessage').innerText = 'File size exceeds 2 MB. Please choose a smaller file.';

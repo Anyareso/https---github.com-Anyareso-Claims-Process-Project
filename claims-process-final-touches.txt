@@ -14,7 +14,7 @@
 - Update progress of the file as it is being uploaded (done *review once backend integrated)
 - Functionality for the uploaded files section i.e. enable file preview once files are uploaded (done)
 - Enable functionality option where one may delete a file once uploaded (done) 
-- Add file size limit to 2mbs 
+- Adjust file size limit to 2mbs (done) 
 
 4. Submission page
 
@@ -32,11 +32,11 @@
 - Display personal relief page if yes
 
 6. Signatures page
-- Get signatures to work
+- Add signature options to draw, upload or remove
 - Add data protection notice
 
 Full form
 - Functionalities for 'back' and 'next' step buttons (done)
-- Showing active tab on the side panel
-- Displaying step-titles for the different pages 
+- Showing active tab on the side panel (done)
+- Displaying step-titles for the different pages (done)
 - Store user input into a js array

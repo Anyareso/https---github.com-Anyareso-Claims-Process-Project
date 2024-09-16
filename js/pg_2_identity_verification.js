@@ -14,6 +14,9 @@
               height: 320
           }
       };
+      
+      // Create an array to store the image data
+      let imageDataArray = [];
 
       // Access Webcam
       async function init() {
@@ -51,6 +54,12 @@
           link.href = imageData;
           link.download = 'selfie.png';
           link.click();
+
+          // Store the image data in an array
+          let imageDataArray = JSON.parse(localStorage.getItem('imageDataArray')) || [];
+          imageDataArray.push(imageData);
+          localStorage.setItem('imageDataArray', JSON.stringify(imageDataArray));
+          console.log(imageDataArray); // Log the array to the console
           // const image = new Image();
           // image.src = imageData;
           // // Now you can use the image as needed

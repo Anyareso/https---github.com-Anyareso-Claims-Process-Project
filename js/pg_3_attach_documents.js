@@ -2,6 +2,7 @@ const dropArea = document.getElementById('drop-area');
 const inputFile = document.getElementById('input-file');
 const uploadedFilesList = document.getElementById('uploaded-files-list');
 const maxSize = 2 * 1024 * 1024; // changed to 2 MB in bytes
+const uploadedFiles = []; // Declare a global array to store uploaded files
 
 // Prevent default drag behaviors
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -53,13 +54,44 @@ function handleFiles(files) {
             return;
         }
         document.getElementById('fileSizeMessage').innerText = '';
-        previewFile(file);
+        if (uploadedFiles.length < 3) { // Check if the user has already uploaded 3 files
+            const fileInfo = {
+                file: file,
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                progress: 0 // Add a progress property to store the upload progress
+            };
+            uploadedFiles.push(fileInfo);
+            previewFile(file);
+        } else {
+            alert('You have already uploaded 3 files. Please remove some files before uploading more.');
+        }
+        // previewFile(file);
     });
 }
+
+function nextStep() {
+    const uploadedFilesList = document.getElementById('uploaded-files-list');
+    const files = uploadedFilesList.querySelectorAll('li.in-prog');
+
+    files.forEach(fileListItem => {
+        const file = fileListItem.dataset.file; // Get the file object from the list item
+        uploadedFiles.push(file); // Add the file to the uploadedFiles array
+    });
+
+    console.log(uploadedFiles); // Check the uploadedFiles array
+}
+
+// Add an event listener to the "Next Step" button
+const nextStepButton = document.getElementById('next-step-button');
+nextStepButton.addEventListener('click', nextStep);
 
 function previewFile(file) {
     const listItem = document.createElement('li');
     listItem.className = 'in-prog';
+    listItem.dataset.file = file; // Set the file object on the list item
+
 
     const fileIcon = document.createElement('div');
     fileIcon.className = 'col';

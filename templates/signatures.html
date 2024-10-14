@@ -1,0 +1,139 @@
+<section>
+    <style>
+        @import "css/styles.css";
+        @import "css/submission.css";
+    </style>
+    <h4>Personal Relief Request</h4>
+    <div class="personal-relief-request-signatures">
+        <!-- first annuitants signature -->
+        <div class="signature-box" id="first-signature">
+            <label for="signature">Sign Here:</label>
+            <canvas id="signature-pad-2" class="signature-pad" width="250" height="150"></canvas>
+            <div class="buttons">
+                <button class="cancel" id="cancel-2">Cancel</button>
+                <button class="accept" id="accept-2">Accept</button>
+            </div>
+        </div>
+        <!-- <p>Signature of Annuitant</p> -->
+        
+
+        <!-- second annuitants signature -->
+        <div class="signature-box" id="second-signature">
+            <label for="signature">Sign Here:</label>
+            <canvas id="signature-pad-3" class="signature-pad" width="250" height="150"></canvas>
+            <div class="buttons">
+                <button class="cancel" id="cancel-3">Cancel</button>
+                <button class="accept" id="accept-3">Accept</button>
+            </div>
+        </div>
+        <!-- <p>Signature of Joint Annuitant - Spouse </p> -->
+    </div>            
+    <div class="sign-info">
+        <p>Signature of Annuitant</p>
+        <p>Signature of Joint Annuitant - Spouse </p>
+    </div>
+
+    </br>
+        
+    <!-- data protection checbox -->
+    <div class="form-group">
+        <input type="checkbox" id="data-protection">
+        <label for="data-protection">I agree that I have read and understood the <a href="#">Data Protection Notice</a>.</label>
+    </div>
+
+    </br>
+
+    <div class="btn-group">
+        <button type="button" class="btn-prev" data-section="pg_4_submission_relief_form.html">Back</button>
+        <button type="button" class="btn-submit">Submit</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="js/signature-pad.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+        var signaturePads = [];
+        
+        function initializeSignaturePad(canvasId, cancelBtnId, acceptBtnId) {
+            var canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error("Canvas element with ID " + canvasId + " not found.");
+                return;
+            }
+
+            var signaturePad = new SignaturePad(canvas);
+            signaturePads.push(signaturePad);
+
+            var cancelBtn = document.getElementById(cancelBtnId);
+            if (cancelBtn) {
+                cancelBtn.addEventListener("click", function() {
+                    signaturePad.clear();
+                });
+            } else {
+                console.error("Cancel button with ID " + cancelBtnId + " not found.");
+            }
+
+            var acceptBtn = document.getElementById(acceptBtnId);
+            if (acceptBtn) {
+                acceptBtn.addEventListener("click", function() {
+                    if (signaturePad.isEmpty()) {
+                        alert("Please provide a signature first.");
+                    } else {
+                        var dataURL = signaturePad.toDataURL();
+                        console.log("Signature accepted:", dataURL);
+                    }
+                });
+            } else {
+                console.error("Accept button with ID " + acceptBtnId + " not found.");
+            }
+        }
+
+        // Initialize signature pads
+        initializeSignaturePad("signature-pad-2", "cancel-2", "accept-2");
+        initializeSignaturePad("signature-pad-3", "cancel-3", "accept-3");
+
+        // Personal relief section handling
+        var personalReliefYes = document.getElementById("personal-relief-yes");
+        var personalReliefNo = document.getElementById("personal-relief-no");
+        var personalReliefSection = document.getElementById("personal-relief-section");
+
+        if (personalReliefYes && personalReliefNo && personalReliefSection) {
+            personalReliefYes.addEventListener("change", function() {
+                if (this.checked) {
+                    personalReliefSection.style.display = "block";
+                }
+            });
+
+            personalReliefNo.addEventListener("change", function() {
+                if (this.checked) {
+                    personalReliefSection.style.display = "none";
+                }
+            });
+        } else {
+            if (!personalReliefYes) {
+                console.error("Personal relief 'Yes' radio button not found.");
+            }
+            if (!personalReliefNo) {
+                console.error("Personal relief 'No' radio button not found.");
+            }
+            if (!personalReliefSection) {
+                console.error("Personal relief section not found.");
+            }
+        }
+    });
+
+    function clearSignature(id) {
+        var signaturePad = signaturePads.find(function(pad) {
+            return pad._canvas.id === id;
+        });
+
+        if (!signaturePad) {
+            console.error("Signature pad with ID " + id + " not found.");
+            return;
+        }
+
+        signaturePad.clear();
+    }
+    </script>
+</section>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        img {
+            max-width: 200px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h2>Submissions Dashboard</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Documents</th>
+                <th>Captured Image</th>
+                <th>Signature</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for submission in submissions %}
+            <tr>
+                <td>{{ submission.name }}</td>
+                <td>{{ submission.email }}</td>
+                <td>
+                    {% for doc in submission.documents.split(';') %}
+                    <a href="{{ doc }}" download>Download Document</a><br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if submission.identity_image %}
+                    <img src="{{ submission.identity_image }}" alt="Captured Image">
+                    {% else %}
+                    No Image
+                    {% endif %}
+                </td>
+                <td>
+                    {% if submission.signature %}
+                    <img src="{{ submission.signature }}" alt="Signature">
+                    {% else %}
+                    No Signature
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

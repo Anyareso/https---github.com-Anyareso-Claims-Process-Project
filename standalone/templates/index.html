@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multistep Form</title>
+    <style>
+        /* Basic styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .step {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .form-step {
+            margin-top: 20px;
+        }
+        input[type="text"], input[type="email"], input[type="file"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="button"], input[type="submit"] {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        input[type="button"].back {
+            background-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+
+    <form id="multiStepForm" action="/submit" method="POST" enctype="multipart/form-data">
+        <!-- Step 1: Personal Information -->
+        <div class="step active">
+            <h3>Step 1: Personal Information</h3>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <input type="button" value="Next" onclick="nextStep()">
+        </div>
+
+        <!-- Step 2: Identity Verification -->
+        <div class="step">
+            <h3>Step 2: Identity Verification</h3>
+            <p>Please take a photo for verification:</p>
+            <video id="video" width="300" height="200" autoplay></video>
+            <br>
+            <input type="button" value="Capture" onclick="captureImage()">
+            <input type="button" value="Back" class="back" onclick="prevStep()">
+            <input type="button" value="Next" onclick="nextStep()">
+            <input type="hidden" id="identity_image" name="identity_image">
+        </div>
+
+        <!-- Step 3: Upload Documents -->
+        <div class="step">
+            <h3>Step 3: Upload Documents</h3>
+            <label for="documents">Attach Documents:</label>
+            <input type="file" id="documents" name="documents[]" multiple>
+            <input type="button" value="Back" class="back" onclick="prevStep()">
+            <input type="button" value="Next" onclick="nextStep()">
+        </div>
+
+        <!-- Step 4: Signature -->
+        <div class="step">
+            <h3>Step 4: Signature</h3>
+            <p>Please provide your signature below:</p>
+            <canvas id="signatureCanvas" width="300" height="100" style="border: 1px solid black;"></canvas>
+            <br>
+            <input type="button" value="Clear" onclick="clearSignature()">
+            <input type="button" value="Back" class="back" onclick="prevStep()">
+            <input type="button" value="Next" onclick="nextStep()">
+            <input type="hidden" id="signature" name="signature">
+        </div>
+
+        <!-- Step 5: Review & Submit -->
+        <div class="step">
+            <h3>Step 5: Review & Submit</h3>
+            <p><strong>Review your information:</strong></p>
+
+            <div id="reviewInfo">
+                <p><strong>Name:</strong> <span id="reviewName"></span></p>
+                <p><strong>Email:</strong> <span id="reviewEmail"></span></p>
+                <p><strong>Captured Image:</strong></p>
+                <img id="reviewImage" width="150">
+                <p><strong>Uploaded Documents:</strong> <span id="reviewDocuments"></span></p>
+                <p><strong>Signature:</strong></p>
+                <canvas id="reviewSignatureCanvas" width="300" height="100" style="border: 1px solid black;"></canvas>
+            </div>
+
+            <input type="button" value="Back" class="back" onclick="prevStep()">
+            <input type="submit" value="Submit">
+        </div>
+    </form>
+
+    <script>
+        // Manage steps
+        let currentStep = 0;
+        let steps = document.getElementsByClassName("step");
+
+        function nextStep() {
+            if (currentStep < steps.length - 1) {
+                steps[currentStep].classList.remove("active");
+                currentStep++;
+                steps[currentStep].classList.add("active");
+                if (currentStep === 4) {
+                    reviewDetails();
+                }
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                steps[currentStep].classList.remove("active");
+                currentStep--;
+                steps[currentStep].classList.add("active");
+   
+            }
+        }
+
+        // Camera capture
+        const video = document.getElementById("video");
+        navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+            video.srcObject = stream;
+        });
+
+        function captureImage() {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/png');
+            document.getElementById('reviewImage').src = dataURL; // preview captured image
+            console.log("Image captured");
+        }
+
+        // Signature
+        const canvas = document.getElementById("signatureCanvas");
+        const ctx = canvas.getContext("2d");
+        let drawing = false;
+
+        canvas.addEventListener("mousedown", (e) => {
+            drawing = true;
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        canvas.addEventListener("mousemove", (e) => {
+            if (drawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener("mouseup", () => (drawing = false));
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Review step
+        function reviewDetails() {
+            // Populate review fields
+            document.getElementById('reviewName').innerText = document.getElementById('name').value;
+            document.getElementById('reviewEmail').innerText = document.getElementById('email').value;
+
+            const documentFiles = document.getElementById('documents').files;
+            let documentNames = [];
+            for (let i = 0; i < documentFiles.length; i++) {
+                documentNames.push(documentFiles[i].name);
+            }
+            document.getElementById('reviewDocuments').innerText = documentNames.join(', ');
+
+            // Copy signature to review canvas
+            const reviewSignatureCanvas = document.getElementById("reviewSignatureCanvas");
+            const reviewCtx = reviewSignatureCanvas.getContext("2d");
+            reviewCtx.drawImage(canvas, 0, 0);
+        }
+    </script>
+
+</body>
+</html>

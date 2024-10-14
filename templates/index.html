@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>Multistep Form</title>
+</head>
+<body>
+    <!-- This container should contain the background image -->
+    <div class="container-background">    
+    <!-- This container should contain the sidebar and the main content -->
+        <div id="page" class="site"></div>
+            <div class="container">
+                <div class="form-box">
+                    <div class="progress">
+                        <div class="logo"><a href="/"><span>VC</span></a></div>
+
+                        <div class="bg-svg"></div>
+                        <div class="step-title">
+                            <h4>Step 1</h4>
+                            <p class="step-description" id="1">Enter your personal information in order to proceed to the next step.</p>                           
+                            <!-- <p class="step-description" id="2"><h4>Step 2</h4><br>Please complete the verification process in order to proceed to the next step.</p>
+                            <br>                            
+                            <p class="step-description" id="3"><h4>Step 3</h4><br>Attach the requested documents in order to proceed to the next step.</p>
+                            <br>
+                            <p class="step-description" id="4"><h4>Step 4</h4><br>Please sign and confirm the choices in order to submit successfully.</p>
+                            <br> -->
+
+                        </div>
+                        <ul class="progress-steps">
+                            <li class="step active">
+                                <span>1</span>
+                                <p><a href="#" data-section="pg_1_personal_information.html">Personal Information</a></p>
+                            </li>
+                            <li class="step">
+                                <span>2</span>
+                                <p><a href="#" data-section="pg_2_identity_verification.html">Identity Verification</a></p>
+                            </li>
+                            <li class="step">
+                                <span>3</span>
+                                <p><a href="#" data-section="pg_3_attach_documents.html">Attach Documents</a></p>
+                            </li>
+                            <li class="step">
+                                <span>4</span>
+                                <p><a href="#" data-section="pg_4_submission.html">Submission</a></p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="content" id="main-content">
+                        <!-- Main content will be loaded here -->
+                    </div>
+
+                </div>
+            </div>
+        </div> 
+    </div> 
+</body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const links = document.querySelectorAll('.progress-steps a');
+        const mainContent = document.getElementById('main-content');
+        const nextButton = document.querySelector('.btn-next');
+        const prevButton = document.querySelector('.btn-prev');
+
+        function loadSection(sectionUrl) {
+            fetch(sectionUrl)
+                .then(response => response.text())
+                .then(data => {
+                    mainContent.innerHTML = data;
+
+                    // Inject the script for the current page
+                    const scriptTag = document.createElement('script');
+                    scriptTag.src = `js/${sectionUrl.replace('.html', '.js')}`;
+                    scriptTag.type = 'text/javascript';
+                    scriptTag.onload = () => console.log(`${scriptTag.src} loaded successfully`);
+                    mainContent.appendChild(scriptTag);
+
+                    // Reinitialize event listeners for any newly loaded content
+                    initializeNavigationButtons();
+                })
+                .catch(error => console.error('Error loading section:', error));
+        }
+
+        function initializeNavigationButtons() {
+            const nextButtons = mainContent.querySelectorAll('.btn-next');
+            const prevButtons = mainContent.querySelectorAll('.btn-prev');
+            
+            nextButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const sectionUrl = this.getAttribute('data-section');
+                    if (sectionUrl) {
+                        loadSection(sectionUrl);
+                    }
+                });
+            });
+
+            prevButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const sectionUrl = this.getAttribute('data-section');
+                    if (sectionUrl) {
+                        loadSection(sectionUrl);
+                    }
+                });
+            });
+        }
+
+        links.forEach(link => {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const sectionUrl = this.getAttribute('data-section');
+                loadSection(sectionUrl);
+            });
+        });
+
+        // Optionally, load the first section by default
+        if (links.length > 0) {
+            links[0].click();
+        }
+
+        // Initialize the Next and Previous Step buttons on the main page
+        nextButton.addEventListener('click', function() {
+            const sectionUrl = this.getAttribute('data-section');
+            if (sectionUrl) {
+                loadSection(sectionUrl);
+            }
+        });
+
+        prevButton.addEventListener('click', function() {
+            const sectionUrl = this.getAttribute('data-section');
+            if (sectionUrl) {
+                loadSection(sectionUrl);
+            }
+        });
+    });
+</script>
+
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multistep Form</title>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+        }
+
+        .sidebar {
+            width: 25%;
+            background-color: #2b2d42;
+            padding: 20px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar ul li span {
+            margin-right: 10px;
+            background-color: #fff;
+            color: #2b2d42;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .content {
+            width: 75%;
+            padding: 40px;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .form-section h3 {
+            margin-bottom: 20px;
+        }
+
+        .form-section input, .form-section button {
+            margin-top: 10px;
+            padding: 10px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .form-section button {
+            background-color: #2b2d42;
+            color: #fff;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>VC</h2>
+        <ul>
+            <li><span>1</span> Personal Information</li>
+            <li><span>2</span> Identity Verification</li>
+            <li><span>3</span> Attach Documents</li>
+            <li><span>4</span> Submission</li>
+        </ul>
+    </div>
+    <div class="content">
+        <!-- Personal Information Step -->
+        <div class="form-section active" id="step1">
+            <h3>Your Personal Information</h3>
+            <input type="text" placeholder="Full Name">
+            <input type="text" placeholder="ID Number">
+            <input type="email" placeholder="Email">
+            <input type="text" placeholder="KRA Pin">
+            <button onclick="nextStep(2)">Next Step</button>
+        </div>
+
+        <!-- Identity Verification Step -->
+        <div class="form-section" id="step2">
+            <h3>Identity Verification</h3>
+            <p>Please take a clear photo for verification purposes.</p>
+            
+            <!-- Video stream and buttons for camera capture -->
+            <div>
+                <video id="video" width="320" height="240" autoplay></video>
+                <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+            </div>
+
+            <div>
+                <button id="start-camera">Start Camera</button>
+                <button id="take-photo" style="display:none;">Take Photo</button>
+                <button id="retake-photo" style="display:none;">Retake Photo</button>
+            </div>
+
+            <br>
+            <button onclick="nextStep(1)">Back</button>
+            <button id="nextStepButton" onclick="nextStep(3)" style="display:none;">Next Step</button>
+        </div>
+
+        <!-- Attach Documents Step -->
+        <div class="form-section" id="step3">
+            <h3>Attach Documents</h3>
+            <!-- Drag and drop file upload section -->
+            <input type="file">
+            <button onclick="nextStep(2)">Back</button>
+            <button onclick="nextStep(4)">Next Step</button>
+        </div>
+
+        <!-- Submission Step -->
+        <div class="form-section" id="step4">
+            <h3>Submission</h3>
+            <p>Thank you for submitting your documents.</p>
+            <button onclick="nextStep(3)">Back</button>
+        </div>
+    </div>
+
+    <script>
+        function nextStep(step) {
+            const sections = document.querySelectorAll('.form-section');
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+        }
+
+        // Camera integration
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const startCameraButton = document.getElementById('start-camera');
+        const takePhotoButton = document.getElementById('take-photo');
+        const retakePhotoButton = document.getElementById('retake-photo');
+        const nextStepButton = document.getElementById('nextStepButton');
+        let stream;
+
+        // Start the camera when the button is clicked
+        startCameraButton.addEventListener('click', async () => {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            takePhotoButton.style.display = 'inline-block';
+            startCameraButton.style.display = 'none';
+        });
+
+        // Capture the photo when "Take Photo" is clicked
+        takePhotoButton.addEventListener('click', () => {
+            canvas.style.display = 'block';
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            video.style.display = 'none';
+
+            // Convert to Base64
+            const imageData = canvas.toDataURL('image/png');
+
+            // Send to backend (example using fetch)
+            fetch('/upload-image', {
+                method: 'POST',
+                body: JSON.stringify({ image: imageData }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                return response.json();
+            }).then(data => {
+                console.log('Image uploaded successfully:', data);
+            }).catch(err => {
+                console.error('Error uploading image:', err);
+            });
+        });
+
+        // Retake the photo if the user clicks "Retake Photo"
+        retakePhotoButton.addEventListener('click', () => {
+            canvas.style.display = 'none';
+            video.style.display = 'block';
+            takePhotoButton.style.display = 'inline-block';
+            retakePhotoButton.style.display = 'none';
+            nextStepButton.style.display = 'none';
+        });
+
+        // Stop the camera when navigating away from the step (optional)
+        function stopCamera() {
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+        }
+
+        // Call stopCamera when moving to the next step
+        function nextStep(step) {
+            stopCamera(); // Stop the camera when leaving this step
+            const sections = document.querySelectorAll('.form-section');
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+        }
+    </script>
+</body>
+</html>

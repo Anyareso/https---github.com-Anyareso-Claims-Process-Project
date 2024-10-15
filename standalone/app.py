@@ -15,6 +15,11 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+# Ensure that the "uploads" directory exists
+UPLOAD_FOLDER = 'uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
 # Route to render the multistep form
 @app.route('/')
 def index():
@@ -25,18 +30,19 @@ def index():
 def submit_form():
     name = request.form['name']
     email = request.form['email']
+    
     # Get the captured image and signature from the form
-    identity_image = request.form.get('reviewImage')  # base64 string for captured image
-    signature = request.form.get('reviewSignatureCanvas')  # base64 string for signature
+    identity_image = request.form.get('identity_image')  # base64 string for captured image
+    signature = request.form.get('signature')  # base64 string for signature
 
-
-    # Save uploaded documents and signature
+    # Save uploaded documents
     documents = request.files.getlist("documents[]")
     document_paths = []
     for document in documents:
-        file_path = os.path.join("uploads", document.filename)
-        document.save(file_path)
-        document_paths.append(file_path)
+        if document.filename != '':  # Only save if a file was actually uploaded
+            file_path = os.path.join(UPLOAD_FOLDER, document.filename)
+            document.save(file_path)
+            document_paths.append(file_path)
 
     # Save form data into the database
     new_submission = UserSubmission(
@@ -45,7 +51,6 @@ def submit_form():
         documents=";".join(document_paths),  # Store document paths in the database
         identity_image=identity_image,  # Store base64 image string
         signature=signature  # Store base64 signature string
-        # Add other fields (identity_image, signature) as necessary
     )
     db.session.add(new_submission)
     db.session.commit()
@@ -65,6 +70,20 @@ def dashboard():
     submissions = UserSubmission.query.all()
 
     return render_template('dashboard.html', submissions=submissions)
+
+# Route to delete a submission
+@app.route('/delete/<int:id>', methods=['POST'])
+def delete_submission(id):
+    # Find the submission by ID
+    submission = UserSubmission.query.get(id)
+    
+    if submission:
+        # Delete the record
+        db.session.delete(submission)
+        db.session.commit()
+    
+    # Redirect back to the dashboard after deletion
+    return redirect(url_for('dashboard'))
 
 
 if __name__ == '__main__':

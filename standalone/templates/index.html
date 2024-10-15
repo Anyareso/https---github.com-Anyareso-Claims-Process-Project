@@ -26,9 +26,6 @@
         .active {
             display: block;
         }
-        .form-step {
-            margin-top: 20px;
-        }
         input[type="text"], input[type="email"], input[type="file"], textarea {
             width: 100%;
             padding: 10px;
@@ -51,7 +48,7 @@
 </head>
 <body>
 
-    <form id="multiStepForm" action="/submit" method="POST" enctype="multipart/form-data">
+    <form id="multiStepForm" action="/submit" method="POST" enctype="multipart/form-data" onsubmit="return prepareFormData()">
         <!-- Step 1: Personal Information -->
         <div class="step active">
             <h3>Step 1: Personal Information</h3>
@@ -118,12 +115,21 @@
     </form>
 
     <script>
-        // Manage steps
         let currentStep = 0;
         let steps = document.getElementsByClassName("step");
 
         function nextStep() {
-            if (currentStep < steps.length - 1) {
+            const currentFormStep = steps[currentStep].querySelectorAll('input, textarea');
+            let isValid = true;
+
+            currentFormStep.forEach(input => {
+                if (!input.checkValidity()) {
+                    input.reportValidity();
+                    isValid = false;
+                }
+            });
+
+            if (isValid && currentStep < steps.length - 1) {
                 steps[currentStep].classList.remove("active");
                 currentStep++;
                 steps[currentStep].classList.add("active");
@@ -133,12 +139,12 @@
             }
         }
 
+
         function prevStep() {
             if (currentStep > 0) {
                 steps[currentStep].classList.remove("active");
                 currentStep--;
                 steps[currentStep].classList.add("active");
-   
             }
         }
 
@@ -156,10 +162,10 @@
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const dataURL = canvas.toDataURL('image/png');
             document.getElementById('reviewImage').src = dataURL; // preview captured image
-            console.log("Image captured");
+            document.getElementById('identity_image').value = dataURL; // set the hidden field for image
         }
 
-        // Signature
+        // Signature handling
         const canvas = document.getElementById("signatureCanvas");
         const ctx = canvas.getContext("2d");
         let drawing = false;
@@ -182,9 +188,23 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
+        // Prepare the form data before submission
+        function prepareFormData() {
+            // Convert signature canvas to base64 and store it in the hidden input field
+            const signatureDataURL = canvas.toDataURL('image/png');
+            document.getElementById('signature').value = signatureDataURL;
+
+            // Ensure captured image and signature are included
+            if (!document.getElementById('identity_image').value || !document.getElementById('signature').value) {
+                alert("Please capture the image and provide a signature before submitting.");
+                return false; // prevent form submission if either image or signature is missing
+            }
+
+            return true; // allow form submission if both fields are filled
+        }
+
         // Review step
         function reviewDetails() {
-            // Populate review fields
             document.getElementById('reviewName').innerText = document.getElementById('name').value;
             document.getElementById('reviewEmail').innerText = document.getElementById('email').value;
 
@@ -195,11 +215,19 @@
             }
             document.getElementById('reviewDocuments').innerText = documentNames.join(', ');
 
-            // Copy signature to review canvas
+            // Display signature in the review step
             const reviewSignatureCanvas = document.getElementById("reviewSignatureCanvas");
             const reviewCtx = reviewSignatureCanvas.getContext("2d");
             reviewCtx.drawImage(canvas, 0, 0);
         }
+        document.getElementById('multiStepForm').addEventListener('submit', function(e) {
+            let formIsValid = this.checkValidity();
+            if (!formIsValid) {
+                e.preventDefault();  // Prevent the form from submitting if invalid
+                this.reportValidity();  // Show validation messages
+            }
+        });
+
     </script>
 
 </body>

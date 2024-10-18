@@ -329,107 +329,479 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
     <script>
         // Global variables
         let currentStep = 1;
         const totalSteps = 4;
+        let signaturePad;
+
+        // DOM Elements
         const form = document.getElementById('multiStepForm');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const snapButton = document.getElementById('snap');
+        const redoButton = document.getElementById('redo');
+        const confirmButton = document.getElementById('confirm');
+        const fileInput = document.getElementById('input-file');
+        const fileList = document.getElementById('uploaded-files-list');
 
-        // Update button states
-        function updateButtons() {
-            prevBtn.disabled = (currentStep === 1);
-            nextBtn.textContent = (currentStep === totalSteps) ? 'Submit' : 'Next';
-        }
+        // Constants
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg'];
+        const maxFileSize = 5 * 1024 * 1024; // 5MB
 
-        // Show a specific step
-        function showStep(step) {
-            document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
-            document.getElementById(`step${step}`).classList.add('active');
-            currentStep = step;
-            updateButtons();
-        }
+        // Modularized functions
+        const FormNavigation = {
+            updateButtons() {
+                prevBtn.disabled = (currentStep === 1);
+                nextBtn.textContent = (currentStep === totalSteps) ? 'Submit' : 'Next';
+            },
 
-        // Validate the current step
-        function validateStep(step) {
-            const stepElement = document.getElementById(`step${step}`);
-            const inputs = stepElement.querySelectorAll('input[required]');
-            let isValid = true;
+            showStep(step) {
+                document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+                document.getElementById(`step${step}`).classList.add('active');
+                currentStep = step;
+                this.updateButtons();
 
-            inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    isValid = false;
-                    input.classList.add('error');
-                } else {
-                    input.classList.remove('error');
+                if (step === 2) {
+                    WebcamModule.startWebcam();
+                } else if (step === 4 && !signaturePad) {
+                    SignatureModule.initSignaturePad();
                 }
-            });
-
-            if (!isValid) {
-                alert('Please fill in all required fields before proceeding.');
             }
+        };
 
-            return isValid;
-        }
+        const Validation = {
+            rules: {
+                fullName: (value) => value.trim().length > 0,
+                idNumber: (value) => /^\d{8}$/.test(value),
+                phoneNumber: (value) => /^\d{10}$/.test(value),
+                kraPin: (value) => /^[A-Z]\d{9}[A-Z]$/.test(value),
+                emailAddress: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+            },
 
-        // Submit the form
-        function submitForm() {
-            if (validateStep(totalSteps)) {
-                // Collect form data
-                const formData = new FormData(form);
-                
-                // Here you would typically send the data to a server
-                // For this example, we'll just log it to the console
-                console.log('Form submitted with the following data:');
-                for (let [key, value] of formData.entries()) {
-                    console.log(`${key}: ${value}`);
+            validateStep(step) {
+                const stepElement = document.getElementById(`step${step}`);
+                const inputs = stepElement.querySelectorAll('input[required]');
+                let isValid = true;
+
+                inputs.forEach(input => {
+                    const rule = this.rules[input.id] || (() => true);
+                    if (!rule(input.value)) {
+                        isValid = false;
+                        this.showError(input, `Invalid ${input.name}`);
+                    } else {
+                        this.clearError(input);
+                    }
+                });
+
+                // Step-specific validations
+                if (step === 2) {
+                    isValid = isValid && WebcamModule.validateSelfie();
+                } else if (step === 3) {
+                    isValid = isValid && FileUploadModule.validateFileUploads();
+                } else if (step === 4) {
+                    isValid = isValid && SignatureModule.validateSignature();
                 }
 
-                // Optionally, display a success message
-                alert('Form submitted successfully!');
+                if (!isValid) {
+                    alert('Please correct the errors before proceeding.');
+                }
 
-                // Reset the form or redirect the user
-                // form.reset();
-                // window.location.href = 'thank-you-page.html';
+                return isValid;
+            },
+
+            showError(input, message) {
+                let errorElement = input.nextElementSibling;
+                if (!errorElement || !errorElement.classList.contains('error-message')) {
+                    errorElement = document.createElement('div');
+                    errorElement.classList.add('error-message');
+                    input.parentNode.insertBefore(errorElement, input.nextSibling);
+                }
+                errorElement.textContent = message;
+                input.classList.add('error');
+            },
+
+            clearError(input) {
+                const errorElement = input.nextElementSibling;
+                if (errorElement && errorElement.classList.contains('error-message')) {
+                    errorElement.remove();
+                }
+                input.classList.remove('error');
+            }
+        };
+
+        const FileUploadModule = {
+            handleFileUpload(event) {
+                const files = event.target.files;
+                fileList.innerHTML = '';
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (this.isValidFile(file)) {
+                        const listItem = document.createElement('div');
+                        listItem.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                        fileList.appendChild(listItem);
+                    } else {
+                        alert(`File ${file.name} is not allowed. Please upload only PDF or JPG files under 5MB.`);
+                    }
+                }
+            },
+
+            isValidFile(file) {
+                return allowedTypes.includes(file.type) && file.size <= maxFileSize;
+            },
+
+            validateFileUploads() {
+                if (fileList.children.length === 0) {
+                    alert('Please upload at least one document.');
+                    return false;
+                }
+                return true;
+            }
+        };
+
+        const WebcamModule = {
+            stream: null,
+            livenessChecks: {
+                blinkDetected: false,
+                movementDetected: false,
+            },
+            lastFrame: null,
+            blinkCheckInterval: null,
+            movementCheckInterval: null,
+            feedbackElement: null,
+            overlayElement: null,
+
+            startWebcam() {
+                this.adjustLayout();
+                this.createFeedbackElement();
+                this.createOverlayElement();
+
+                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                    .then(streamObj => {
+                        this.stream = streamObj;
+                        video.srcObject = this.stream;
+                        video.play();
+                        this.startLivenessDetection();
+                    })
+                    .catch(error => {
+                        console.error("Error accessing the camera", error);
+                        alert("Unable to access the camera. Please ensure you've granted permission and try again.");
+                    });
+            },
+
+            stopWebcam() {
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                    this.stream = null;
+                }
+                video.srcObject = null;
+                this.stopLivenessDetection();
+                this.removeFeedbackElement();
+                this.removeOverlayElement();
+                this.resetLayout();
+            },
+
+            adjustLayout() {
+                const style = document.createElement('style');
+                style.id = 'webcam-layout-style';
+                style.textContent = `
+                    body, html {
+                        height: 100%;
+                        margin: 0;
+                        overflow: hidden;
+                    }
+                    .overlay {
+                        display: flex;
+                        flex-direction: column;
+                        height: 100vh;
+                        overflow: hidden;
+                    }
+                    .identity-ver {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        padding: 20px;
+                    }
+                    #video, #canvas {
+                        max-width: 100%;
+                        max-height: 70vh;
+                        width: auto;
+                        height: auto;
+                    }
+                `;
+                document.head.appendChild(style);
+            },
+
+            resetLayout() {
+                const style = document.getElementById('webcam-layout-style');
+                if (style) {
+                    style.remove();
+                }
+            },
+
+            createFeedbackElement() {
+                this.feedbackElement = document.createElement('div');
+                this.feedbackElement.id = 'liveness-feedback';
+                this.feedbackElement.style.position = 'absolute';
+                this.feedbackElement.style.bottom = '10px';
+                this.feedbackElement.style.left = '0';
+                this.feedbackElement.style.width = '100%';
+                this.feedbackElement.style.textAlign = 'center';
+                this.feedbackElement.style.color = 'white';
+                this.feedbackElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                this.feedbackElement.style.padding = '5px';
+                this.feedbackElement.style.zIndex = '10';
+                document.querySelector('.identity-ver').appendChild(this.feedbackElement);
+            },
+
+            createOverlayElement() {
+                this.overlayElement = document.createElement('div');
+                this.overlayElement.id = 'face-guide-overlay';
+                this.overlayElement.style.position = 'absolute';
+                this.overlayElement.style.top = '0';
+                this.overlayElement.style.left = '0';
+                this.overlayElement.style.width = '100%';
+                this.overlayElement.style.height = '100%';
+                this.overlayElement.style.pointerEvents = 'none';
+                this.overlayElement.style.zIndex = '5';
+
+                const borderElement = document.createElement('div');
+                borderElement.style.position = 'absolute';
+                borderElement.style.top = '2%';
+                borderElement.style.left = '2%';
+                borderElement.style.width = '96%';
+                borderElement.style.height = '96%';
+                borderElement.style.border = '3px solid #00ff00';
+                borderElement.style.boxSizing = 'border-box';
+
+                const faceOutline = document.createElement('div');
+                faceOutline.style.position = 'absolute';
+                faceOutline.style.top = '20%';
+                faceOutline.style.left = '25%';
+                faceOutline.style.width = '50%';
+                faceOutline.style.height = '60%';
+                faceOutline.style.border = '2px dashed #00ff00';
+                faceOutline.style.borderRadius = '50%';
+
+                this.overlayElement.appendChild(borderElement);
+                this.overlayElement.appendChild(faceOutline);
+                document.querySelector('.identity-ver').appendChild(this.overlayElement);
+            },
+
+            removeFeedbackElement() {
+                if (this.feedbackElement) {
+                    this.feedbackElement.remove();
+                    this.feedbackElement = null;
+                }
+            },
+
+            removeOverlayElement() {
+                if (this.overlayElement) {
+                    this.overlayElement.remove();
+                    this.overlayElement = null;
+                }
+            },
+
+            startLivenessDetection() {
+                this.updateFeedback("Please position your face within the green outline, then blink and move slightly.");
+                this.blinkCheckInterval = setInterval(() => this.checkForBlink(), 200);
+                this.movementCheckInterval = setInterval(() => this.checkForMovement(), 500);
+            },
+
+            stopLivenessDetection() {
+                clearInterval(this.blinkCheckInterval);
+                clearInterval(this.movementCheckInterval);
+                this.livenessChecks.blinkDetected = false;
+                this.livenessChecks.movementDetected = false;
+            },
+
+            checkForBlink() {
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const frame = context.getImageData(0, 0, canvas.width, canvas.height);
+                const totalBrightness = frame.data.reduce((sum, value, index) => (index % 4 !== 3) ? sum + value : sum, 0);
+                
+                if (this.lastFrame) {
+                    const brightnessDiff = Math.abs(totalBrightness - this.lastFrame);
+                    if (brightnessDiff > 500000) {  // Lowered threshold
+                        this.livenessChecks.blinkDetected = true;
+                        this.updateFeedback("Blink detected!");
+                    }
+                }
+                this.lastFrame = totalBrightness;
+            },
+
+            checkForMovement() {
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const frame = context.getImageData(0, 0, canvas.width, canvas.height);
+                
+                if (this.lastFrame) {
+                    let diff = 0;
+                    for (let i = 0; i < frame.data.length; i += 4) {
+                        diff += Math.abs(frame.data[i] - this.lastFrame.data[i]);
+                    }
+                    if (diff > 500000) {  // Lowered threshold
+                        this.livenessChecks.movementDetected = true;
+                        this.updateFeedback("Movement detected!");
+                    }
+                }
+                this.lastFrame = frame;
+            },
+
+            takeSnapshot() {
+                if (this.livenessChecks.blinkDetected && this.livenessChecks.movementDetected) {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    this.toggleElements(true);
+                    this.stopLivenessDetection();
+                    this.updateFeedback("Photo captured successfully!");
+                    this.removeOverlayElement();
+                } else {
+                    this.updateFeedback("Please ensure your face is within the outline, then blink and move slightly before taking the photo.");
+                }
+            },
+
+            updateFeedback(message) {
+                if (this.feedbackElement) {
+                    this.feedbackElement.textContent = message;
+                }
+            },
+
+            redoPhoto() {
+                this.toggleElements(false);
+            },
+
+            confirmPhoto() {
+                alert('Photo confirmed!');
+                this.stopWebcam();
+            },
+
+            toggleElements(showCanvas) {
+                canvas.style.display = showCanvas ? 'block' : 'none';
+                video.style.display = showCanvas ? 'none' : 'block';
+                snapButton.style.display = showCanvas ? 'none' : 'inline-block';
+                redoButton.style.display = showCanvas ? 'inline-block' : 'none';
+                confirmButton.style.display = showCanvas ? 'inline-block' : 'none';
+            },
+
+            validateSelfie() {
+                if (canvas.style.display === 'none') {
+                    this.updateFeedback('Please take and confirm a photo.');
+                    return false;
+                }
+                if (!this.livenessChecks.blinkDetected || !this.livenessChecks.movementDetected) {
+                    this.updateFeedback('Liveness check incomplete. Please retake the photo.');
+                    return false;
+                }
+                return true;
+            }
+        };
+
+        const SignatureModule = {
+            initSignaturePad() {
+                const canvas = document.getElementById('signature-pad-1');
+                signaturePad = new SignaturePad(canvas);
+
+                document.getElementById('cancel-1').addEventListener('click', () => {
+                    signaturePad.clear();
+                });
+
+                document.getElementById('accept-1').addEventListener('click', () => {
+                    if (signaturePad.isEmpty()) {
+                        alert('Please provide a signature first.');
+                    } else {
+                        alert('Signature accepted.');
+                        // Here you could save the signature data
+                        // const signatureData = signaturePad.toDataURL();
+                    }
+                });
+            },
+
+            validateSignature() {
+                if (!signaturePad || signaturePad.isEmpty()) {
+                    alert('Please provide a signature.');
+                    return false;
+                }
+                return true;
+            }
+        };
+
+        function submitForm() {
+            if (Validation.validateStep(totalSteps)) {
+                try {
+                    const formData = new FormData(form);
+                    formData.append('signature', signaturePad.toDataURL());
+
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        formData.append('documents', fileInput.files[i]);
+                    }
+
+                    // Here you would typically send the data to a server
+                    // For this example, we'll just log it to the console
+                    console.log('Form submitted with the following data:');
+                    for (let [key, value] of formData.entries()) {
+                        console.log(`${key}: ${value}`);
+                    }
+
+                    alert('Form submitted successfully!');
+                    // form.reset();
+                    // window.location.href = 'thank-you-page.html';
+                } catch (error) {
+                    console.error('Error submitting form:', error);
+                    alert('An error occurred while submitting the form. Please try again.');
+                }
             }
         }
 
         // Event listeners
-        nextBtn.addEventListener('click', function() {
+        nextBtn.addEventListener('click', () => {
             if (currentStep < totalSteps) {
-                if (validateStep(currentStep)) {
-                    showStep(currentStep + 1);
+                if (Validation.validateStep(currentStep)) {
+                    FormNavigation.showStep(currentStep + 1);
                 }
             } else {
                 submitForm();
             }
         });
 
-        prevBtn.addEventListener('click', function() {
+        prevBtn.addEventListener('click', () => {
             if (currentStep > 1) {
-                showStep(currentStep - 1);
+                FormNavigation.showStep(currentStep - 1);
             }
         });
 
         document.querySelectorAll('.step-link').forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', (e) => {
                 e.preventDefault();
-                const step = parseInt(this.getAttribute('data-step'));
-                if (step < currentStep || validateStep(currentStep)) {
-                    showStep(step);
+                const step = parseInt(link.getAttribute('data-step'));
+                if (step < currentStep || Validation.validateStep(currentStep)) {
+                    FormNavigation.showStep(step);
                 }
             });
         });
 
-        document.querySelector('.close-btn').addEventListener('click', function() {
+        document.querySelector('.close-btn').addEventListener('click', () => {
             if (confirm('Are you sure you want to close the form? All progress will be lost.')) {
                 document.querySelector('.overlay').style.display = 'none';
+                WebcamModule.stopWebcam();
             }
         });
 
+        snapButton.addEventListener('click', () => WebcamModule.takeSnapshot());
+        redoButton.addEventListener('click', () => WebcamModule.redoPhoto());
+        confirmButton.addEventListener('click', () => WebcamModule.confirmPhoto());
+        fileInput.addEventListener('change', (event) => FileUploadModule.handleFileUpload(event));
+
         // Initialize the form
-        updateButtons();
+        FormNavigation.updateButtons();
     </script>
 </body>
 </html>

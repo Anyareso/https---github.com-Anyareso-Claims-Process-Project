@@ -3,215 +3,433 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multistep Form</title>
+    <title>Floating Window Webapp with Form</title>
     <style>
-        body {
-            display: flex;
+        body, html {
+            margin: 0;
+            padding: 0;
             font-family: Arial, sans-serif;
+            height: 100%;
         }
-
-        .sidebar {
-            width: 25%;
-            background-color: #2b2d42;
-            padding: 20px;
-            color: #fff;
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .floating-window {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 1000px;
+            height: 80vh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
         }
-
-        .sidebar h2 {
-            margin-bottom: 40px;
+        .window-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #e0e0e0;
         }
-
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .window-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #f0f0f0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
         .sidebar ul {
             list-style-type: none;
             padding: 0;
         }
-
-        .sidebar ul li {
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
+        .sidebar li {
+            margin-bottom: 10px;
         }
-
-        .sidebar ul li span {
-            margin-right: 10px;
-            background-color: #fff;
-            color: #2b2d42;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
+        .sidebar a {
+            text-decoration: none;
+            color: #333;
         }
-
-        .content {
-            width: 75%;
-            padding: 40px;
+        .sidebar a:hover {
+            text-decoration: underline;
         }
-
-        .form-section {
+        .form-step {
             display: none;
         }
-
-        .form-section.active {
+        .form-step.active {
             display: block;
         }
-
-        .form-section h3 {
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 20px;
+        }
+        .nav-button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .nav-button:hover {
+            background-color: #45a049;
+        }
+        .nav-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="tel"],
+        .form-group input[type="email"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+        .row input {
+            flex: 1;
+        }
+        .identity-ver {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .video-wrap, .canvas-container {
             margin-bottom: 20px;
         }
-
-        .form-section input, .form-section button {
-            margin-top: 10px;
-            padding: 10px;
-            width: 100%;
-            max-width: 300px;
+        #video, #canvas {
+            border: 1px solid #ddd;
+            max-width: 100%;
         }
-
-        .form-section button {
-            background-color: #2b2d42;
-            color: #fff;
-            border: none;
+        .upload-container {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+        }
+        .signature-box {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        #signature-pad-1 {
+            border: 1px solid #ddd;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h2>VC</h2>
-        <ul>
-            <li><span>1</span> Personal Information</li>
-            <li><span>2</span> Identity Verification</li>
-            <li><span>3</span> Attach Documents</li>
-            <li><span>4</span> Submission</li>
-        </ul>
+    <div class="overlay">
+        <div class="floating-window">
+            <div class="window-header">
+                <h2>My Webapp Form</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="window-content">
+                <div class="sidebar">
+                    <h3>Progress</h3>
+                    <ul>
+                        <li><a href="#" class="step-link" data-step="1">Step 1: Personal Information</a></li>
+                        <li><a href="#" class="step-link" data-step="2">Step 2: Identity Verification</a></li>
+                        <li><a href="#" class="step-link" data-step="3">Step 3: Document Upload</a></li>
+                        <li><a href="#" class="step-link" data-step="4">Step 4: Submission</a></li>
+                    </ul>
+                </div>
+                <div class="main-content">
+                    <form id="multiStepForm">
+                        <div class="form-step active" id="step1">
+                            <h3>Step 1: Personal Information</h3>
+                            <p>Enter your personal details here.</p>
+                            <div class="form-group">
+                                <label for="fullName">Full Name</label>
+                                <input type="text" id="fullName" name="fullName" required>
+                            </div>
+                            <div class="row">
+                                <div class="form-group">
+                                    <label for="idNumber">ID Number</label>
+                                    <input type="number" id="idNumber" name="idNumber" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phoneNumber">Phone Number</label>
+                                    <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="kraPin">KRA Pin</label>
+                                <input type="text" id="kraPin" name="kraPin" required>
+                            </div>
+                            <div class="row">
+                                <div class="form-group">
+                                    <label for="address">Address</label>
+                                    <input type="text" id="address" name="address" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="code">Code</label>
+                                    <input type="text" id="code" name="code" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="town">Town</label>
+                                    <input type="text" id="town" name="town" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="emailAddress">Email Address</label>
+                                <input type="email" id="emailAddress" name="emailAddress" required>
+                            </div>
+                        </div>
+                        <div class="form-step" id="step2">
+                            <h3>Step 2: Identity Verification</h3>
+                            <p>Please enable your camera to take a selfie. Look straight into the camera.</p>
+                            <div class="identity-ver">
+                                <div class="video-wrap">
+                                    <video id="video" playsinline autoplay></video>
+                                    <div class="controller">
+                                        <button type="button" id="snap">Capture</button>
+                                    </div>
+                                </div>
+                                <div class="canvas-container">
+                                    <h4>Check Selfie</h4>
+                                    <p>Make sure your selfie clearly shows your face</p>
+                                    <canvas id="canvas" width="300" height="300"></canvas>
+                                    <div class="canvas-btn">
+                                        <button type="button" id="redo">Redo</button>
+                                        <button type="button" id="confirm">Confirm</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-step" id="step3">
+                            <h3>Step 3: Document Upload</h3>
+                            <p>Upload the following documents: ID front and back, KRA Pin Certificate</p>
+                            <div class="upload-container">
+                                <div class="upload-files">
+                                    <label for="input-file" id="drop-area">
+                                        <img src="/api/placeholder/100/100" alt="Upload icon">
+                                        <p>Drag and drop your files here or click to browse</p>
+                                        <input type="file" accept="image/*,.pdf" id="input-file" multiple>
+                                    </label>
+                                    <p id="fileSizeMessage" style="color: red;"></p>
+                                </div>
+                                <div class="uploaded-files">
+                                    <p>Uploaded Files:</p>
+                                    <div id="uploaded-files-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-step" id="step4">
+                            <h3>Step 4: Submission</h3>
+                            <p>Please sign and accept the data protection clause to submit successfully.</p>
+                            <div class="signature-box">
+                                <label for="signature-pad-1">Sign Here:</label>
+                                <canvas id="signature-pad-1" width="250" height="150"></canvas>
+                                <div class="buttons">
+                                    <button type="button" id="cancel-1">Cancel</button>
+                                    <button type="button" id="accept-1">Accept</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Do you want Personal Relief?</label>
+                                <input type="radio" name="personalRelief" id="personal-relief-yes" value="yes" required>
+                                <label for="personal-relief-yes">Yes</label>
+                                <input type="radio" name="personalRelief" id="personal-relief-no" value="no" required>
+                                <label for="personal-relief-no">No</label>
+                            </div>
+                            <div class="form-group">
+                                <input type="checkbox" id="dataProtection" required>
+                                <label for="dataProtection">I agree that I have read and understood the <a href="#" id="dataProtectionLink">Data Protection Notice</a>.</label>
+                            </div>
+                        </div>
+                        <div class="button-container">
+                            <button type="button" id="prevBtn" class="nav-button" disabled>Previous</button>
+                            <button type="button" id="nextBtn" class="nav-button">Next</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="content">
-        <!-- Personal Information Step -->
-        <div class="form-section active" id="step1">
-            <h3>Your Personal Information</h3>
-            <input type="text" placeholder="Full Name">
-            <input type="text" placeholder="ID Number">
-            <input type="email" placeholder="Email">
-            <input type="text" placeholder="KRA Pin">
-            <button onclick="nextStep(2)">Next Step</button>
-        </div>
 
-        <!-- Identity Verification Step -->
-        <div class="form-section" id="step2">
-            <h3>Identity Verification</h3>
-            <p>Please take a clear photo for verification purposes.</p>
-            
-            <!-- Video stream and buttons for camera capture -->
-            <div>
-                <video id="video" width="320" height="240" autoplay></video>
-                <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    <div id="dataProtectionModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Data Protection Agreement</h2>
+            <p>Please read and accept our data protection terms before proceeding.</p>
+            <p><!-- Add more content here as needed --></p>
+            <div class="modal-buttons">
+                <button class="complete" id="completeButton">Accept</button>
+                <button class="reject" id="rejectButton">Reject</button>
             </div>
-
-            <div>
-                <button id="start-camera">Start Camera</button>
-                <button id="take-photo" style="display:none;">Take Photo</button>
-                <button id="retake-photo" style="display:none;">Retake Photo</button>
-            </div>
-
-            <br>
-            <button onclick="nextStep(1)">Back</button>
-            <button id="nextStepButton" onclick="nextStep(3)" style="display:none;">Next Step</button>
-        </div>
-
-        <!-- Attach Documents Step -->
-        <div class="form-section" id="step3">
-            <h3>Attach Documents</h3>
-            <!-- Drag and drop file upload section -->
-            <input type="file">
-            <button onclick="nextStep(2)">Back</button>
-            <button onclick="nextStep(4)">Next Step</button>
-        </div>
-
-        <!-- Submission Step -->
-        <div class="form-section" id="step4">
-            <h3>Submission</h3>
-            <p>Thank you for submitting your documents.</p>
-            <button onclick="nextStep(3)">Back</button>
         </div>
     </div>
 
     <script>
-        function nextStep(step) {
-            const sections = document.querySelectorAll('.form-section');
-            sections.forEach(section => section.classList.remove('active'));
-            document.getElementById('step' + step).classList.add('active');
+        // Global variables
+        let currentStep = 1;
+        const totalSteps = 4;
+        const form = document.getElementById('multiStepForm');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        // Update button states
+        function updateButtons() {
+            prevBtn.disabled = (currentStep === 1);
+            nextBtn.textContent = (currentStep === totalSteps) ? 'Submit' : 'Next';
         }
 
-        // Camera integration
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const startCameraButton = document.getElementById('start-camera');
-        const takePhotoButton = document.getElementById('take-photo');
-        const retakePhotoButton = document.getElementById('retake-photo');
-        const nextStepButton = document.getElementById('nextStepButton');
-        let stream;
+        // Show a specific step
+        function showStep(step) {
+            document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+            document.getElementById(`step${step}`).classList.add('active');
+            currentStep = step;
+            updateButtons();
+        }
 
-        // Start the camera when the button is clicked
-        startCameraButton.addEventListener('click', async () => {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            video.srcObject = stream;
-            takePhotoButton.style.display = 'inline-block';
-            startCameraButton.style.display = 'none';
-        });
+        // Validate the current step
+        function validateStep(step) {
+            const stepElement = document.getElementById(`step${step}`);
+            const inputs = stepElement.querySelectorAll('input[required]');
+            let isValid = true;
 
-        // Capture the photo when "Take Photo" is clicked
-        takePhotoButton.addEventListener('click', () => {
-            canvas.style.display = 'block';
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            video.style.display = 'none';
-
-            // Convert to Base64
-            const imageData = canvas.toDataURL('image/png');
-
-            // Send to backend (example using fetch)
-            fetch('/upload-image', {
-                method: 'POST',
-                body: JSON.stringify({ image: imageData }),
-                headers: {
-                    'Content-Type': 'application/json'
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.classList.add('error');
+                } else {
+                    input.classList.remove('error');
                 }
-            }).then(response => {
-                return response.json();
-            }).then(data => {
-                console.log('Image uploaded successfully:', data);
-            }).catch(err => {
-                console.error('Error uploading image:', err);
             });
-        });
 
-        // Retake the photo if the user clicks "Retake Photo"
-        retakePhotoButton.addEventListener('click', () => {
-            canvas.style.display = 'none';
-            video.style.display = 'block';
-            takePhotoButton.style.display = 'inline-block';
-            retakePhotoButton.style.display = 'none';
-            nextStepButton.style.display = 'none';
-        });
+            if (!isValid) {
+                alert('Please fill in all required fields before proceeding.');
+            }
 
-        // Stop the camera when navigating away from the step (optional)
-        function stopCamera() {
-            if (stream) {
-                const tracks = stream.getTracks();
-                tracks.forEach(track => track.stop());
+            return isValid;
+        }
+
+        // Submit the form
+        function submitForm() {
+            if (validateStep(totalSteps)) {
+                // Collect form data
+                const formData = new FormData(form);
+                
+                // Here you would typically send the data to a server
+                // For this example, we'll just log it to the console
+                console.log('Form submitted with the following data:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}: ${value}`);
+                }
+
+                // Optionally, display a success message
+                alert('Form submitted successfully!');
+
+                // Reset the form or redirect the user
+                // form.reset();
+                // window.location.href = 'thank-you-page.html';
             }
         }
 
-        // Call stopCamera when moving to the next step
-        function nextStep(step) {
-            stopCamera(); // Stop the camera when leaving this step
-            const sections = document.querySelectorAll('.form-section');
-            sections.forEach(section => section.classList.remove('active'));
-            document.getElementById('step' + step).classList.add('active');
-        }
+        // Event listeners
+        nextBtn.addEventListener('click', function() {
+            if (currentStep < totalSteps) {
+                if (validateStep(currentStep)) {
+                    showStep(currentStep + 1);
+                }
+            } else {
+                submitForm();
+            }
+        });
+
+        prevBtn.addEventListener('click', function() {
+            if (currentStep > 1) {
+                showStep(currentStep - 1);
+            }
+        });
+
+        document.querySelectorAll('.step-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const step = parseInt(this.getAttribute('data-step'));
+                if (step < currentStep || validateStep(currentStep)) {
+                    showStep(step);
+                }
+            });
+        });
+
+        document.querySelector('.close-btn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to close the form? All progress will be lost.')) {
+                document.querySelector('.overlay').style.display = 'none';
+            }
+        });
+
+        // Initialize the form
+        updateButtons();
     </script>
 </body>
 </html>

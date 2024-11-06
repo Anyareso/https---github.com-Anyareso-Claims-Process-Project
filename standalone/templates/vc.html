@@ -89,6 +89,28 @@
             margin-top: auto;
             padding-top: 20px;
         }
+        
+        .skip-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #6c757d;  /* gray color, similar to secondary buttons */
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .skip-btn:hover {
+            background-color: #5a6268;
+        }
+
+        .skip-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
         .nav-button {
             padding: 10px 20px;
             background-color: #4CAF50;

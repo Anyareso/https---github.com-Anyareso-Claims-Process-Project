@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Annuity VC</title>
+    <meta name="viewport" content="width="device-width", initial-scale=1.0">
+    <title>Annuity Verification Certificate</title>
     <style>
         body, html {
             margin: 0;
@@ -183,6 +183,20 @@
             text-decoration: none;
             cursor: pointer;
         }
+        .flash-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+        }
+        .flash-message.success { background-color: #4CAF50; }
+        .flash-message.error { background-color: #f44336; }
+        .flash-message.info { background-color: #2196F3; }
     </style>
 </head>
 <body>
@@ -329,9 +343,18 @@
         </div>
     </div>
 
+    <div id="flashMessage" class="flash-message"></div>
+
+</body>   
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
     <script>
-        // Global variables
+        // Global variables and constants
+        const BLINK_THRESHOLD = 500000;
+        const MOVEMENT_THRESHOLD = 500000;
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+        const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg'];
+
         let currentStep = 1;
         const totalSteps = 4;
         let signaturePad;
@@ -347,12 +370,19 @@
         const confirmButton = document.getElementById('confirm');
         const fileInput = document.getElementById('input-file');
         const fileList = document.getElementById('uploaded-files-list');
+        const flashMessageElement = document.getElementById('flashMessage');
 
-        // Constants
-        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg'];
-        const maxFileSize = 5 * 1024 * 1024; // 5MB
+        // Utility functions
+        const showFlashMessage = (message, type = 'info') => {
+            flashMessageElement.textContent = message;
+            flashMessageElement.className = `flash-message ${type}`;
+            flashMessageElement.style.display = 'block';
+            setTimeout(() => {
+                flashMessageElement.style.display = 'none';
+            }, 3000);
+        };
 
-        // Modularized functions
+        // Form Navigation Module
         const FormNavigation = {
             updateButtons() {
                 prevBtn.disabled = (currentStep === 1);
@@ -373,6 +403,7 @@
             }
         };
 
+        // Validation Module
         const Validation = {
             rules: {
                 fullName: (value) => value.trim().length > 0,
@@ -407,7 +438,7 @@
                 }
 
                 if (!isValid) {
-                    alert('Please correct the errors before proceeding.');
+                    showFlashMessage('Please correct the errors before proceeding.', 'error');
                 }
 
                 return isValid;
@@ -433,6 +464,7 @@
             }
         };
 
+        // File Upload Module
         const FileUploadModule = {
             handleFileUpload(event) {
                 const files = event.target.files;
@@ -445,24 +477,25 @@
                         listItem.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
                         fileList.appendChild(listItem);
                     } else {
-                        alert(`File ${file.name} is not allowed. Please upload only PDF or JPG files under 5MB.`);
+                        showFlashMessage(`File ${file.name} is not allowed. Please upload only PDF or JPG files under 5MB.`, 'error');
                     }
                 }
             },
 
             isValidFile(file) {
-                return allowedTypes.includes(file.type) && file.size <= maxFileSize;
+                return ALLOWED_FILE_TYPES.includes(file.type) && file.size <= MAX_FILE_SIZE;
             },
 
             validateFileUploads() {
                 if (fileList.children.length === 0) {
-                    alert('Please upload at least one document.');
+                    showFlashMessage('Please upload at least one document.', 'error');
                     return false;
                 }
                 return true;
             }
         };
 
+        // Webcam Module
         const WebcamModule = {
             stream: null,
             livenessChecks: {
@@ -474,11 +507,12 @@
             movementCheckInterval: null,
             feedbackElement: null,
             overlayElement: null,
+            layoutStyle: null,
 
             startWebcam() {
-                this.adjustLayout();
                 this.createFeedbackElement();
                 this.createOverlayElement();
+                this.adjustLayout();
 
                 navigator.mediaDevices.getUserMedia({ video: true, audio: false })
                     .then(streamObj => {
@@ -489,7 +523,7 @@
                     })
                     .catch(error => {
                         console.error("Error accessing the camera", error);
-                        alert("Unable to access the camera. Please ensure you've granted permission and try again.");
+                        showFlashMessage("Unable to access the camera. Please ensure you've granted permission and try again.", 'error');
                     });
             },
 
@@ -506,9 +540,12 @@
             },
 
             adjustLayout() {
-                const style = document.createElement('style');
-                style.id = 'webcam-layout-style';
-                style.textContent = `
+                if (!this.layoutStyle) {
+                    this.layoutStyle = document.createElement('style');
+                    this.layoutStyle.id = 'webcam-layout-style';
+                    document.head.appendChild(this.layoutStyle);
+                }
+                this.layoutStyle.textContent = `
                     body, html {
                         height: 100%;
                         margin: 0;
@@ -535,13 +572,12 @@
                         height: auto;
                     }
                 `;
-                document.head.appendChild(style);
             },
 
             resetLayout() {
-                const style = document.getElementById('webcam-layout-style');
-                if (style) {
-                    style.remove();
+                if (this.layoutStyle) {
+                    this.layoutStyle.remove();
+                    this.layoutStyle = null;
                 }
             },
 
@@ -591,7 +627,7 @@
 
                 this.overlayElement.appendChild(borderElement);
                 this.overlayElement.appendChild(faceOutline);
-                document.querySelector('.identity-ver').appendChild(this.overlayElement);
+                document.querySelector('.video-wrap').appendChild(this.overlayElement);
             },
 
             removeFeedbackElement() {
@@ -629,7 +665,7 @@
                 
                 if (this.lastFrame) {
                     const brightnessDiff = Math.abs(totalBrightness - this.lastFrame);
-                    if (brightnessDiff > 500000) {  // Lowered threshold
+                    if (brightnessDiff > BLINK_THRESHOLD) {
                         this.livenessChecks.blinkDetected = true;
                         this.updateFeedback("Blink detected!");
                     }
@@ -647,7 +683,7 @@
                     for (let i = 0; i < frame.data.length; i += 4) {
                         diff += Math.abs(frame.data[i] - this.lastFrame.data[i]);
                     }
-                    if (diff > 500000) {  // Lowered threshold
+                    if (diff > MOVEMENT_THRESHOLD) {
                         this.livenessChecks.movementDetected = true;
                         this.updateFeedback("Movement detected!");
                     }
@@ -656,17 +692,25 @@
             },
 
             takeSnapshot() {
-                if (this.livenessChecks.blinkDetected && this.livenessChecks.movementDetected) {
+                if (this.livenessChecks.blinkDetected || this.livenessChecks.movementDetected) {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
                     this.toggleElements(true);
                     this.stopLivenessDetection();
                     this.updateFeedback("Photo captured successfully!");
-                    this.removeOverlayElement();
                 } else {
                     this.updateFeedback("Please ensure your face is within the outline, then blink and move slightly before taking the photo.");
                 }
+            },
+
+            toggleElements(showCanvas) {
+                document.querySelector('.canvas-container').style.display = showCanvas ? 'block' : 'none';
+                snapButton.style.display = showCanvas ? 'none' : 'inline-block';
+                redoButton.style.display = showCanvas ? 'inline-block' : 'none';
+                confirmButton.style.display = showCanvas ? 'inline-block' : 'none';
+                video.style.display = showCanvas ? 'none' : 'block';
+                canvas.style.display = showCanvas ? 'block' : 'none';
             },
 
             updateFeedback(message) {
@@ -677,19 +721,12 @@
 
             redoPhoto() {
                 this.toggleElements(false);
+                this.startLivenessDetection();
             },
 
             confirmPhoto() {
-                alert('Photo confirmed!');
+                showFlashMessage('Photo confirmed!', 'success');
                 this.stopWebcam();
-            },
-
-            toggleElements(showCanvas) {
-                canvas.style.display = showCanvas ? 'block' : 'none';
-                video.style.display = showCanvas ? 'none' : 'block';
-                snapButton.style.display = showCanvas ? 'none' : 'inline-block';
-                redoButton.style.display = showCanvas ? 'inline-block' : 'none';
-                confirmButton.style.display = showCanvas ? 'inline-block' : 'none';
             },
 
             validateSelfie() {
@@ -705,6 +742,7 @@
             }
         };
 
+        // Signature Module
         const SignatureModule = {
             initSignaturePad() {
                 const canvas = document.getElementById('signature-pad-1');
@@ -716,9 +754,9 @@
 
                 document.getElementById('accept-1').addEventListener('click', () => {
                     if (signaturePad.isEmpty()) {
-                        alert('Please provide a signature first.');
+                        showFlashMessage('Please provide a signature first.', 'error');
                     } else {
-                        alert('Signature accepted.');
+                        showFlashMessage('Signature accepted.', 'success');
                         // Here you could save the signature data
                         // const signatureData = signaturePad.toDataURL();
                     }
@@ -727,10 +765,36 @@
 
             validateSignature() {
                 if (!signaturePad || signaturePad.isEmpty()) {
-                    alert('Please provide a signature.');
+                    showFlashMessage('Please provide a signature.', 'error');
                     return false;
                 }
                 return true;
+            }
+        };
+
+        // CSRF Protection
+        const CSRFProtection = {
+            token: null,
+
+            init() {
+                this.token = this.generateToken();
+                this.addTokenToForm();
+            },
+
+            generateToken() {
+                return Math.random().toString(36).substr(2) + Math.random().toString(36).substr(2);
+            },
+
+            addTokenToForm() {
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = 'csrf_token';
+                tokenInput.value = this.token;
+                form.appendChild(tokenInput);
+            },
+
+            validateToken(token) {
+                return token === this.token;
             }
         };
 
@@ -751,12 +815,12 @@
                         console.log(`${key}: ${value}`);
                     }
 
-                    alert('Form submitted successfully!');
+                    showFlashMessage('Form submitted successfully!', 'success');
                     // form.reset();
                     // window.location.href = 'thank-you-page.html';
                 } catch (error) {
                     console.error('Error submitting form:', error);
-                    alert('An error occurred while submitting the form. Please try again.');
+                    showFlashMessage('An error occurred while submitting the form. Please try again.', 'error');
                 }
             }
         }
@@ -802,6 +866,7 @@
 
         // Initialize the form
         FormNavigation.updateButtons();
+        CSRFProtection.init();
     </script>
 </body>
 </html>

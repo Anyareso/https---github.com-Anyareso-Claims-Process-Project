@@ -6,9 +6,14 @@
     <title>Annuity Verification Certificate</title>
     <style>
         body, html {
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            background-image: url('/images/blank_background.png');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
             height: 100%;
         }
         .overlay {
@@ -28,7 +33,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             width: 90%;
             max-width: 1000px;
-            height: 80vh;
+            height: 83vh;
             display: flex;
             flex-direction: column;
         }
@@ -52,9 +57,14 @@
         }
         .sidebar {
             width: 200px;
-            background-color: #f0f0f0;
+            background-color: #2c2e3a;
+            color: #f4f4f4;
             padding: 20px;
             overflow-y: auto;
+        }
+        .sidebar h3 {
+            font-size: 19px;
+            font-family: 'Montserrat', Arial, serif;
         }
         .main-content {
             flex: 1;
@@ -62,19 +72,70 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
+            font-family: 'Montserrat', Arial, serif;
         }
         .sidebar ul {
             list-style-type: none;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
         .sidebar li {
-            margin-bottom: 10px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            font-family: 'Montserrat', Arial, sans-serif;
         }
-        .sidebar a {
+        .sidebar li::before {
+            content: attr(data-step);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            font-size: 14px;
+            margin-right: 10px;
+            background-color: #2c2e3a;
+            color: #f4f4f4;
+        }
+
+        .sidebar li.active::before {
+            background-color: #f4f4f4;
+            color: #2c2e3a;
+        }
+
+        .sidebar li::after {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 40px;
+            height: 40px;
+            width: 2px;
+            background: #777;
+        }
+
+        .sidebar li:last-child::after {
+            display: none;
+        }
+
+        .sidebar li.active {
+            font-weight: bold;
+            color: #f4f4f4;
+        }
+
+        .sidebar li.inactive {
+            color: #777;
+        }
+        /* Adjust styling for each step description */
+        .sidebar li a {
             text-decoration: none;
-            color: #333;
+            color: inherit;
+            font-size: 14px;
         }
-        .sidebar a:hover {
+        .sidebar li a:hover {
             text-decoration: underline;
         }
         .form-step {
@@ -112,19 +173,34 @@
             cursor: not-allowed;
         }
         .nav-button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
+            padding: 5px 10px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-family: 'Montserrat', arial, serif;
         }
         .nav-button:hover {
-            background-color: #45a049;
+            background-color: #3471d6;;
         }
         .nav-button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
+        }
+        #prevBtn {
+            border: 2px solid black;
+            border-radius: 8px;
+            width: 70px;
+            height: 35px;
+            text-align: center;
+        }
+        #nextBtn {
+            background-color: #3471d6;
+            border-radius: 8px;
+            border: none;
+            width: 100px;
+            height: 35px;
+            color: white;
+            font-family: 'Montserrat', arial, serif;
         }
         .form-group {
             margin-bottom: 15px;
@@ -137,10 +213,12 @@
         .form-group input[type="number"],
         .form-group input[type="tel"],
         .form-group input[type="email"] {
-            width: 100%;
+            width: 90%;
             padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 3px solid #2c2e3a;
+            border-radius: 7px;
+            background-color: #f4f4f4;
+            font-family: 'Montserrat', Arial, serif;
         }
         .row {
             display: flex;
@@ -170,9 +248,11 @@
             border: 1px solid #ddd;
             padding: 10px;
             margin-bottom: 15px;
+            background-color: #c5c7c9;
+            width: fit-content;
         }
         #signature-pad-1 {
-            border: 1px solid #ddd;
+            border: 2px solid #ddd;
         }
         .modal {
             display: none;
@@ -232,10 +312,10 @@
                 <div class="sidebar">
                     <h3>Progress</h3>
                     <ul>
-                        <li><a href="#" class="step-link" data-step="1">Step 1: Personal Info</a></li>
-                        <li><a href="#" class="step-link" data-step="2">Step 2: Identity Verification</a></li>
-                        <li><a href="#" class="step-link" data-step="3">Step 3: Document Upload</a></li>
-                        <li><a href="#" class="step-link" data-step="4">Step 4: Submission</a></li>
+                        <li><a href="#" class="step-link active" data-step="1">Personal Info</a></li>
+                        <li><a href="#" class="step-link" data-step="2">Identity Verification</a></li>
+                        <li><a href="#" class="step-link" data-step="3">Document Upload</a></li>
+                        <li><a href="#" class="step-link inactive" data-step="4">Submission</a></li>
                     </ul>
                 </div>
                 <div class="main-content">
@@ -309,7 +389,7 @@
                             <div class="upload-container">
                                 <div class="upload-files">
                                     <label for="input-file" id="drop-area">
-                                        <img src="/api/placeholder/100/100" alt="Upload icon">
+                                        <img src="/images/508-icon.png" alt="Upload icon">
                                         <p>Drag and drop your files here or click to browse</p>
                                         <input type="file" accept="image/*,.pdf" id="input-file" multiple>
                                     </label>

@@ -257,6 +257,7 @@
                                 <label for="emailAddress">Email Address</label>
                                 <input type="email" id="emailAddress" name="emailAddress" required>
                             </div>
+                            <button type="button" class="skip-btn" data-skip="2">Skip</button>
                         </div>
                         <div class="form-step" id="step2">
                             <h3>Step 2: Identity Verification</h3>
@@ -278,6 +279,7 @@
                                     </div>
                                 </div>
                             </div>
+                            <button type="button" class="skip-btn" data-skip="3">Skip</button>
                         </div>
                         <div class="form-step" id="step3">
                             <h3>Step 3: Document Upload</h3>
@@ -296,6 +298,7 @@
                                     <div id="uploaded-files-list"></div>
                                 </div>
                             </div>
+                            <button type="button" class="skip-btn" data-skip="4">Skip</button>
                         </div>
                         <div class="form-step" id="step4">
                             <h3>Step 4: Submission</h3>
@@ -350,8 +353,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
     <script>
         // Global variables and constants
-        const BLINK_THRESHOLD = 500000;
-        const MOVEMENT_THRESHOLD = 500000;
+        const BLINK_THRESHOLD = 5000000;  // Adjust based on testing
+        const MOVEMENT_THRESHOLD = 1000000;  // Adjust based on testing
+        const MAX_RETRIES = 3;
+        const API_TIMEOUT = 10000;
         const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
         const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg'];
 
@@ -399,6 +404,14 @@
                     WebcamModule.startWebcam();
                 } else if (step === 4 && !signaturePad) {
                     SignatureModule.initSignaturePad();
+                }
+            },
+
+            skipToStep(step) {
+                if (step >= 1 && step <= totalSteps) {  // Ensure step is within valid range
+                    this.showStep(step);
+                } else {
+                    console.warn(`Step ${step} is out of range. Please enter a step between 1 and ${totalSteps}.`);
                 }
             }
         };
@@ -502,29 +515,97 @@
                 blinkDetected: false,
                 movementDetected: false,
             },
-            lastFrame: null,
+            lastBlinkFrame: null,
+            lastMovementFrame: null,
             blinkCheckInterval: null,
             movementCheckInterval: null,
             feedbackElement: null,
             overlayElement: null,
             layoutStyle: null,
+            isProcessing: false,
+            onPhotoConfirmed: null, // Callback for when photo is confirmed
 
-            startWebcam() {
+            // Initialize the module
+            async init(options = {}) {
+                try {
+                    this.onPhotoConfirmed = options.onPhotoConfirmed || null;
+                    await this.checkBrowserSupport();
+                    this.createElements();
+                    this.adjustLayout();
+                    await this.startWebcam();
+                    this.setupEventListeners();
+                    return true;
+                } catch (error) {
+                    console.error("Initialization error:", error);
+                    this.handleError(error);
+                    return false;
+                }
+            },
+
+            // Setup event listeners for buttons
+            setupEventListeners() {
+                const snapButton = document.getElementById('snapButton');
+                const redoButton = document.getElementById('redoButton');
+                const confirmButton = document.getElementById('confirmButton');
+
+                if (snapButton) {
+                    snapButton.addEventListener('click', () => this.takeSnapshot());
+                }
+                if (redoButton) {
+                    redoButton.addEventListener('click', () => this.redoPhoto());
+                }
+                if (confirmButton) {
+                    confirmButton.addEventListener('click', () => {
+                        if (this.confirmPhoto() && this.onPhotoConfirmed) {
+                            const canvas = document.getElementById('canvas');
+                            canvas.toBlob(blob => {
+                                this.onPhotoConfirmed(blob);
+                            }, 'image/jpeg', 0.95);
+                        }
+                    });
+                }
+            },
+
+            // Check browser support for required features
+            async checkBrowserSupport() {
+                if (!navigator.mediaDevices?.getUserMedia) {
+                    throw new Error("Camera access is not supported in this browser");
+                }
+            },
+
+            // Create UI elements
+            createElements() {
                 this.createFeedbackElement();
                 this.createOverlayElement();
-                this.adjustLayout();
+                this.createLoadingIndicator();
+            },
 
-                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-                    .then(streamObj => {
-                        this.stream = streamObj;
-                        video.srcObject = this.stream;
-                        video.play();
-                        this.startLivenessDetection();
-                    })
-                    .catch(error => {
-                        console.error("Error accessing the camera", error);
-                        showFlashMessage("Unable to access the camera. Please ensure you've granted permission and try again.", 'error');
+            async startWebcam() {
+                try {
+                    this.stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            facingMode: "user",
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }, 
+                        audio: false 
                     });
+                    
+                    const video = document.getElementById('video');
+                    video.srcObject = this.stream;
+                    await video.play();
+                    
+                    // Set canvas dimensions to match video
+                    const canvas = document.getElementById('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    this.startLivenessDetection();
+                    this.updateFeedback("Please position your face within the green outline");
+                } catch (error) {
+                    console.error("Error accessing the camera", error);
+                    this.handleError(new Error("Unable to access the camera. Please ensure you've granted permission."));
+                }
             },
 
             stopWebcam() {
@@ -532,11 +613,90 @@
                     this.stream.getTracks().forEach(track => track.stop());
                     this.stream = null;
                 }
+                const video = document.getElementById('video');
                 video.srcObject = null;
                 this.stopLivenessDetection();
+                this.cleanup();
+            },
+
+            cleanup() {
                 this.removeFeedbackElement();
                 this.removeOverlayElement();
+                this.removeLoadingIndicator();
                 this.resetLayout();
+                this.resetState();
+            },
+
+            resetState() {
+                this.livenessChecks = {
+                    blinkDetected: false,
+                    movementDetected: false,
+                };
+                this.lastBlinkFrame = null;
+                this.lastMovementFrame = null;
+                this.isProcessing = false;
+            },
+
+            createLoadingIndicator() {
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.id = 'verification-loading';
+                loadingIndicator.className = 'loading-indicator hidden';
+                loadingIndicator.innerHTML = `
+                    <div class="spinner"></div>
+                    <div class="loading-text">Verifying...</div>
+                `;
+                document.querySelector('.identity-ver').appendChild(loadingIndicator);
+                
+                // Add CSS for loading indicator
+                const style = document.createElement('style');
+                style.textContent = `
+                    .loading-indicator {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(0, 0, 0, 0.8);
+                        color: white;
+                        padding: 20px;
+                        border-radius: 10px;
+                        text-align: center;
+                        z-index: 1000;
+                    }
+                    .loading-indicator.hidden {
+                        display: none;
+                    }
+                    .spinner {
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #3498db;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin: 0 auto 10px;
+                    }
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+            },
+
+            setLoadingState(isLoading) {
+                this.isProcessing = isLoading;
+                const loadingIndicator = document.getElementById('verification-loading');
+                const snapButton = document.getElementById('snapButton');
+                const redoButton = document.getElementById('redoButton');
+                
+                if (isLoading) {
+                    loadingIndicator.classList.remove('hidden');
+                    snapButton.disabled = true;
+                    redoButton.disabled = true;
+                } else {
+                    loadingIndicator.classList.add('hidden');
+                    snapButton.disabled = false;
+                    redoButton.disabled = false;
+                }
             },
 
             adjustLayout() {
@@ -564,6 +724,7 @@
                         justify-content: center;
                         align-items: center;
                         padding: 20px;
+                        position: relative;
                     }
                     #video, #canvas {
                         max-width: 100%;
@@ -571,14 +732,31 @@
                         width: auto;
                         height: auto;
                     }
+                    .video-wrap {
+                        position: relative;
+                        width: 100%;
+                        max-width: 640px;
+                        margin: 0 auto;
+                    }
+                    .button-container {
+                        margin-top: 20px;
+                        display: flex;
+                        gap: 10px;
+                        justify-content: center;
+                    }
+                    .button {
+                        padding: 10px 20px;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        transition: background-color 0.3s;
+                    }
+                    .button:disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
                 `;
-            },
-
-            resetLayout() {
-                if (this.layoutStyle) {
-                    this.layoutStyle.remove();
-                    this.layoutStyle = null;
-                }
             },
 
             createFeedbackElement() {
@@ -644,66 +822,7 @@
                 }
             },
 
-            startLivenessDetection() {
-                this.updateFeedback("Please position your face within the green outline, then blink and move slightly.");
-                this.blinkCheckInterval = setInterval(() => this.checkForBlink(), 200);
-                this.movementCheckInterval = setInterval(() => this.checkForMovement(), 500);
-            },
-
-            stopLivenessDetection() {
-                clearInterval(this.blinkCheckInterval);
-                clearInterval(this.movementCheckInterval);
-                this.livenessChecks.blinkDetected = false;
-                this.livenessChecks.movementDetected = false;
-            },
-
-            checkForBlink() {
-                const context = canvas.getContext('2d');
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const frame = context.getImageData(0, 0, canvas.width, canvas.height);
-                const totalBrightness = frame.data.reduce((sum, value, index) => (index % 4 !== 3) ? sum + value : sum, 0);
-                
-                if (this.lastFrame) {
-                    const brightnessDiff = Math.abs(totalBrightness - this.lastFrame);
-                    if (brightnessDiff > BLINK_THRESHOLD) {
-                        this.livenessChecks.blinkDetected = true;
-                        this.updateFeedback("Blink detected!");
-                    }
-                }
-                this.lastFrame = totalBrightness;
-            },
-
-            checkForMovement() {
-                const context = canvas.getContext('2d');
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const frame = context.getImageData(0, 0, canvas.width, canvas.height);
-                
-                if (this.lastFrame) {
-                    let diff = 0;
-                    for (let i = 0; i < frame.data.length; i += 4) {
-                        diff += Math.abs(frame.data[i] - this.lastFrame.data[i]);
-                    }
-                    if (diff > MOVEMENT_THRESHOLD) {
-                        this.livenessChecks.movementDetected = true;
-                        this.updateFeedback("Movement detected!");
-                    }
-                }
-                this.lastFrame = frame;
-            },
-
-            takeSnapshot() {
-                if (this.livenessChecks.blinkDetected || this.livenessChecks.movementDetected) {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                    this.toggleElements(true);
-                    this.stopLivenessDetection();
-                    this.updateFeedback("Photo captured successfully!");
-                } else {
-                    this.updateFeedback("Please ensure your face is within the outline, then blink and move slightly before taking the photo.");
-                }
-            },
-
+            
             toggleElements(showCanvas) {
                 document.querySelector('.canvas-container').style.display = showCanvas ? 'block' : 'none';
                 snapButton.style.display = showCanvas ? 'none' : 'inline-block';
@@ -713,32 +832,199 @@
                 canvas.style.display = showCanvas ? 'block' : 'none';
             },
 
-            updateFeedback(message) {
-                if (this.feedbackElement) {
-                    this.feedbackElement.textContent = message;
+            startLivenessDetection() {
+                this.updateFeedback("Please blink and move slightly");
+                this.blinkCheckInterval = setInterval(() => this.checkForBlink(), 200);
+                this.movementCheckInterval = setInterval(() => this.checkForMovement(), 500);
+            },
+
+            stopLivenessDetection() {
+                clearInterval(this.blinkCheckInterval);
+                clearInterval(this.movementCheckInterval);
+            },
+
+            async checkForBlink() {
+                if (this.isProcessing) return;
+
+                const canvas = document.getElementById('canvas');
+                const video = document.getElementById('video');
+                const context = canvas.getContext('2d');
+                
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const frame = context.getImageData(0, 0, canvas.width, canvas.height);
+                const totalBrightness = frame.data.reduce((sum, value, index) => 
+                    (index % 4 !== 3) ? sum + value : sum, 0);
+                
+                if (this.lastBlinkFrame) {
+                    const brightnessDiff = Math.abs(totalBrightness - this.lastBlinkFrame);
+                    if (brightnessDiff > BLINK_THRESHOLD) {
+                        this.livenessChecks.blinkDetected = true;
+                        this.updateFeedback("Blink detected! ✓");
+                        this.updateLivenessStatus();
+                    }
+                }
+                this.lastBlinkFrame = totalBrightness;
+            },
+
+            async checkForMovement() {
+                if (this.isProcessing) return;
+
+                const canvas = document.getElementById('canvas');
+                const video = document.getElementById('video');
+                const context = canvas.getContext('2d');
+                
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const frame = context.getImageData(0, 0, canvas.width, canvas.height);
+                
+                if (this.lastMovementFrame) {
+                    let diff = 0;
+                    for (let i = 0; i < frame.data.length; i += 4) {
+                        diff += Math.abs(frame.data[i] - this.lastMovementFrame.data[i]);
+                    }
+                    if (diff > MOVEMENT_THRESHOLD) {
+                        this.livenessChecks.movementDetected = true;
+                        this.updateFeedback("Movement detected! ✓");
+                        this.updateLivenessStatus();
+                    }
+                }
+                this.lastMovementFrame = frame;
+            },
+
+            updateLivenessStatus() {
+                if (this.livenessChecks.blinkDetected && this.livenessChecks.movementDetected) {
+                    this.updateFeedback("Liveness checks passed! You can take a photo now.");
+                    document.getElementById('snapButton').disabled = false;
                 }
             },
 
-            redoPhoto() {
-                this.toggleElements(false);
-                this.startLivenessDetection();
-            },
-
-            confirmPhoto() {
-                showFlashMessage('Photo confirmed!', 'success');
-                this.stopWebcam();
-            },
-
-            validateSelfie() {
-                if (canvas.style.display === 'none') {
-                    this.updateFeedback('Please take and confirm a photo.');
-                    return false;
+            async takeSnapshot() {
+                if (!this.validateLivenessChecks()) {
+                    return;
                 }
+
+                try {
+                    this.setLoadingState(true);
+                    this.updateFeedback("Processing your photo...");
+
+                    const canvas = document.getElementById('canvas');
+                    const video = document.getElementById('video');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const blob = await this.canvasToBlob(canvas);
+                    const verificationResult = await this.verifyFaceWithRetry(blob);
+
+                    if (verificationResult.success) {
+                        this.toggleElements(true);
+                        this.stopLivenessDetection();
+                        this.updateFeedback("Photo captured and verified successfully! ✓");
+                    } else {
+                        throw new Error(verificationResult.message || "Face verification failed");
+                    }
+                } catch (error) {
+                    console.error('Photo capture error:', error);
+                    this.updateFeedback(error.message || "An error occurred. Please try again.");
+                    this.redoPhoto();
+                } finally {
+                    this.setLoadingState(false);
+                }
+            },
+
+            validateLivenessChecks() {
                 if (!this.livenessChecks.blinkDetected || !this.livenessChecks.movementDetected) {
-                    this.updateFeedback('Liveness check incomplete. Please retake the photo.');
+                    this.updateFeedback("Please complete the liveness checks first");
                     return false;
                 }
                 return true;
+            },
+
+            async canvasToBlob(canvas) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        canvas.toBlob(resolve, 'image/jpeg', 0.95);
+                    } catch (error) {
+                        reject(new Error('Failed to convert image'));
+                    }
+                });
+            },
+
+            async verifyFaceWithRetry(imageBlob, attempts = 0) {
+                try {
+                    return await this.timeoutPromise(
+                        this.verifyFaceWithBackend(imageBlob),
+                        API_TIMEOUT
+                    );
+                } catch (error) {
+                    if (attempts < MAX_RETRIES && this.shouldRetry(error)) {
+                        await this.delay(Math.pow(2, attempts) * 1000); // Exponential backoff
+                        return this.verifyFaceWithRetry(imageBlob, attempts + 1);
+                    }
+                    throw error;
+                }
+            },
+
+            async verifyFaceWithBackend(imageBlob) {
+                // For client-side testing, simulate verification
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve({
+                            success: true,
+                            message: "Face verification simulated successfully"
+                        });
+                    }, 1500); // Simulate network delay
+                });
+            },
+
+            // Update feedback with timestamp for debugging
+            updateFeedback(message) {
+                if (this.feedbackElement) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    this.feedbackElement.textContent = `[${timestamp}] ${message}`;
+                    console.log(`Feedback: ${message}`); // For debugging
+                }
+            },
+
+            // Enhanced error handling
+            handleError(error) {
+                console.error('WebcamModule Error:', error);
+                this.updateFeedback(error.message);
+                this.setLoadingState(false);
+                
+                // Log additional debugging information
+                if (error instanceof Error) {
+                    console.debug({
+                        name: error.name,
+                        message: error.message,
+                        stack: error.stack,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+                
+                if (error.message.includes('camera') || error.message.includes('permission')) {
+                    this.stopWebcam();
+                }
+            },
+
+            // Method to get current frame data for debugging
+            async getDebugData() {
+                const canvas = document.getElementById('canvas');
+                const video = document.getElementById('video');
+                const context = canvas.getContext('2d');
+                
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const frame = context.getImageData(0, 0, canvas.width, canvas.height);
+                
+                return {
+                    frameData: {
+                        width: frame.width,
+                        height: frame.height,
+                        dataSize: frame.data.length,
+                    },
+                    livenessChecks: { ...this.livenessChecks },
+                    isProcessing: this.isProcessing,
+                    streamActive: this.stream && this.stream.active,
+                };
             }
         };
 
@@ -849,6 +1135,14 @@
                 if (step < currentStep || Validation.validateStep(currentStep)) {
                     FormNavigation.showStep(step);
                 }
+            });
+        });
+
+        // Add click event listeners to all skip buttons
+        document.querySelectorAll('.skip-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const skipToStep = parseInt(e.target.dataset.skip);
+                FormNavigation.skipToStep(skipToStep);
             });
         });
 

@@ -89,7 +89,7 @@
             margin-top: auto;
             padding-top: 20px;
         }
-        
+
         .skip-btn {
             display: inline-block;
             padding: 10px 20px;
@@ -358,15 +358,45 @@
     <div id="dataProtectionModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Data Protection Agreement</h2>
-            <p>Please read and accept our data protection terms before proceeding.</p>
-            <p><!-- Add more content here as needed --></p>
-            <div class="modal-buttons">
-                <button class="complete" id="completeButton">Accept</button>
-                <button class="reject" id="rejectButton">Reject</button>
+            <h2>Data Protection Notice</h2>
+            <div class="modal-body">                
+                <!-- Data Protection Agreement Content -->
+                <p><strong>Introduction</strong><br>Your privacy and data protection are important to us. Please read the terms below carefully to understand how we collect, use, and protect your information. By accepting these terms, you consent to our data handling practices as outlined here.</p>
+
+                <p><strong>1. Data Collection and Use</strong><br>We collect personal data to provide you with better service and to fulfill our obligations. This may include personal identification, contact information, and any data directly related to the services you receive from us.</p>
+
+                <p><strong>2. Purpose of Data Processing</strong><br>Your personal data is processed to:
+                    <ul>
+                        <li>Facilitate our services and improve user experience.</li>
+                        <li>Comply with legal obligations.</li>
+                        <li>Communicate important updates and provide relevant information.</li>
+                    </ul>
+                </p>
+
+                <p><strong>3. Data Sharing and Third Parties</strong><br>We may share your data with trusted third parties under strict data protection policies, ensuring that your information remains secure and confidential. These third parties are bound by data protection obligations equivalent to ours.</p>
+
+                <p><strong>4. Data Security</strong><br>We implement technical and organizational measures to protect your data against unauthorized access, loss, or destruction. Only authorized personnel have access to your data, and they are required to handle it confidentially.</p>
+
+                <p><strong>5. Your Rights</strong><br>You have the right to:
+                    <ul>
+                        <li>Access your data at any time.</li>
+                        <li>Request corrections if any information is inaccurate.</li>
+                        <li>Request the deletion of your data under certain circumstances.</li>
+                        <li>Withdraw consent for specific uses at any time.</li>
+                    </ul>
+                </p>
+
+                <p><strong>6. Retention Period</strong><br>Your data will only be kept for as long as necessary to fulfill the purposes outlined or as required by law.</p>
+
+                <p><strong>7. Acceptance</strong><br>By selecting “Accept,” you acknowledge that you have read, understood, and agreed to the terms of our data protection agreement.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="completeButton" class="btn btn-primary">Accept</button>
+                <button id="rejectButton" class="btn btn-secondary">Reject</button>
             </div>
         </div>
     </div>
+
 
     <div id="flashMessage" class="flash-message"></div>
 
@@ -1079,6 +1109,142 @@
                 return true;
             }
         };
+
+        // Data Protection Modal Module
+        const DataProtectionModal = (function () {
+            // Private variables
+            let modal = null;
+            let acceptButton = null;
+            let rejectButton = null;
+            let closeButton = null;
+            
+            // Configuration
+            const config = {
+                modalId: "dataProtectionModal",
+                acceptButtonId: "completeButton",
+                rejectButtonId: "rejectButton",
+                closeButtonClass: "close",
+                triggerLinkId: "dataProtectionLink"  // Add the link ID here
+            };
+            
+            function init() {
+                // Get DOM elements
+                modal = document.getElementById(config.modalId);
+                
+                // Check if modal exists
+                if (!modal) {
+                    console.error("Data Protection Modal: Modal element not found");
+                    return false;
+                }
+                
+                // Get buttons
+                acceptButton = document.getElementById(config.acceptButtonId);
+                rejectButton = document.getElementById(config.rejectButtonId);
+                closeButton = modal.querySelector(`.${config.closeButtonClass}`);
+                
+                // Validate required elements
+                if (!acceptButton || !rejectButton) {
+                    console.error("Data Protection Modal: Required buttons not found");
+                    return false;
+                }
+                
+                // Add event listeners
+                addEventListeners();
+                return true;
+            }
+            
+            function addEventListeners() {
+                // Add click event to open modal when clicking on the data protection link
+                const triggerLink = document.getElementById(config.triggerLinkId);
+                if (triggerLink) {
+                    triggerLink.addEventListener("click", (event) => {
+                        event.preventDefault();  // Prevent default link behavior
+                        open();
+                    });
+                }
+                
+                // Close modal when clicking the close button
+                if (closeButton) {
+                    closeButton.addEventListener("click", close);
+                }
+                
+                // Close modal when clicking outside
+                window.addEventListener("click", (event) => {
+                    if (event.target === modal) {
+                        close();
+                    }
+                });
+                
+                // Handle accept button click
+                acceptButton.addEventListener("click", () => {
+                    handleAccept();
+                });
+                
+                // Handle reject button click
+                rejectButton.addEventListener("click", () => {
+                    handleReject();
+                });
+            }
+            
+            function open() {
+                if (!modal) {
+                    console.error("Data Protection Modal: Cannot open - modal not initialized");
+                    return;
+                }
+                modal.style.display = "block";
+                modal.classList.add("active");
+            }
+            
+            function close() {
+                if (!modal) {
+                    return;
+                }
+                modal.style.display = "none";
+                modal.classList.remove("active");
+            }
+            
+            function handleAccept() {
+                localStorage.setItem("dataProtectionAccepted", "true");
+                showFlashMessage("You have accepted the data protection terms.", "success");
+                close();
+                enableFormSubmission();
+            }
+            
+            function handleReject() {
+                localStorage.setItem("dataProtectionAccepted", "false");
+                showFlashMessage("You have rejected the data protection terms. You cannot proceed further.", "warning");
+                close();
+                disableFormSubmission();
+            }
+            
+            function enableFormSubmission() {
+                const submitButton = document.querySelector("button[type='submit']");
+                if (submitButton) {
+                    submitButton.disabled = false;
+                }
+            }
+            
+            function disableFormSubmission() {
+                const submitButton = document.querySelector("button[type='submit']");
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+            }
+
+            // Public API
+            return {
+                init,
+                open,
+                close,
+                isAccepted: () => localStorage.getItem("dataProtectionAccepted") === "true"
+            };
+        })();
+
+        // Initialize the modal functionality on DOM content load
+        document.addEventListener('DOMContentLoaded', function() {
+            DataProtectionModal.init();
+        });
+
 
         // CSRF Protection
         const CSRFProtection = {

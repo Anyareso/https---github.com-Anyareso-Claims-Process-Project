@@ -22,9 +22,12 @@
             max-width: 300px;
             margin-bottom: 20px;
         }
+        .table-responsive {
+            margin-top: 20px; /* Adds space between filters and the table */
+        }
     </style>
     <script>
-        // JavaScript function to filter table based on search input
+        // Function to filter submissions by search input
         function searchTable() {
             let input = document.getElementById('searchInput').value.toLowerCase();
             let table = document.getElementById('submissionsTable');
@@ -41,6 +44,73 @@
                 rows[i].style.display = match ? '' : 'none';
             }
         }
+
+        // Function to filter by date range and generate CSV report
+        function filterByDate() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const rows = document.querySelectorAll('#submissionsTable tbody tr');
+
+            rows.forEach(row => {
+                const dateCell = row.cells[2]; // Date column
+                const submissionDate = new Date(dateCell.textContent);
+
+                // Display or hide rows based on date range
+                if (submissionDate >= startDate && submissionDate <= endDate) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Function to export full submission details to CSV
+        function exportToCSV() {
+            const rows = document.querySelectorAll('#submissionsTable tbody tr');
+            const csvContent = ['Policy No.,Name,ID Number,Phone Number,Email,KRA Pin No.,Captured Image, ID Photo, KRA Pin Photo, ATM Card Photo, Personal Relief, Signature, Data Protection Consent, Date Submitted'];
+
+            rows.forEach(row => {
+                if (row.style.display !== 'none') { // Only include visible rows
+                    const cols = Array.from(row.cells);
+
+                    const policyNo = cols[0] ? cols[0].textContent.trim() : 'No Data';
+                    const name = cols[1] ? cols[1].textContent.trim() : 'No Data';
+                    const idNumber = cols[2] ? cols[2].textContent.trim() : 'No Data';
+                    const phoneNumber = cols[3] ? cols[3].textContent.trim() : 'No Data';
+                    const email = cols[4] ? cols[4].textContent.trim() : 'No Data';
+                    const kraPin = cols[5] ? cols[5].textContent.trim() : 'No Data';
+                    const capturedImage = cols[6] && cols[6].querySelector('img') ? cols[6].querySelector('img').src : 'No Image';
+                    const idPhoto = cols[7] ? cols[7].textContent.trim() : 'No Data';
+                    const kraPinPhoto = cols[8] ? cols[8].textContent.trim() : 'No Data';
+                    const atmCardPhoto = cols[9] ? cols[9].textContent.trim() : 'No Data';
+                    const personalRelief = cols[10] ? cols[10].textContent.trim() : 'No Data';
+                    const signature = cols[11] && cols[11].querySelector('img') ? cols[11].querySelector('img').src : 'No Signature';
+                    const dataProtectionConsent = cols[12] ? cols[12].textContent.trim() : 'No Data';
+                    const dateSubmitted = cols[13] ? cols[13].textContent.trim() : 'No Data';
+
+                    const rowData = [
+                        policyNo, name, idNumber, phoneNumber, email, kraPin, capturedImage, idPhoto, kraPinPhoto, atmCardPhoto, personalRelief, signature, 
+                        dataProtectionConsent, dateSubmitted
+                    ];
+
+                    csvContent.push(rowData.join(','));
+                }
+            });
+
+            // Create a timestamp for the filename
+            const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Removing special characters to make it valid for file names
+
+            // Convert array to CSV format
+            const csvData = csvContent.join('\n');
+            const blob = new Blob([csvData], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `full_submission_report_${timestamp}.csv`; // Add timestamp to filename
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
     </script>
 </head>
 
@@ -50,6 +120,22 @@
 
         <!-- Search Input -->
         <input type="text" id="searchInput" class="form-control search-bar" onkeyup="searchTable()" placeholder="Search for submissions...">
+
+        <!-- Date Filter Inputs -->
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate" class="form-control">
+            </div>
+            <div class="col-md-4 align-self-end">
+                <button onclick="filterByDate()" class="btn btn-primary mt-2">Filter by Date</button>
+                <button onclick="exportToCSV()" class="btn btn-success mt-2">Generate Report</button>
+            </div>
+        </div>
 
         <!-- Submissions Table -->
         <div class="table-responsive">

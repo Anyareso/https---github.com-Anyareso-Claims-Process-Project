@@ -206,13 +206,54 @@
             border: 1px solid #ddd;
             max-width: 100%;
         }
+        /* General Container */
         .upload-container {
-            border: 2px dashed #ddd;
-            height: 250px;
-            width: 350px;
-            border-radius: 20px;
+            width: 90%;
+            margin-top: 20px;
+            margin-bottom: 20px;
             padding: 20px;
-            text-align: center;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* File Upload Group */
+        .file-upload-group {
+            margin-bottom: 20px;
+        }
+
+        /* Label Style */
+        .upload-label {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* File Input */
+        .file-input {
+            display: block;
+            width: 80%;
+            padding: 10px;
+            font-size: 14px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        /* File Input Hover/Focus Styles */
+        .file-input:hover, .file-input:focus {
+            border-color: #0056b3;
+            background-color: #e7f3ff;
+        }
+
+        /* File Message (Error or Success) */
+        .file-message {
+            color: #d9534f;
+            font-size: 12px;
         }
         .signature-box {
             border: 1px solid #ddd;
@@ -400,19 +441,34 @@
                         </div>
                         <div class="form-step" id="step3">
                             <h3>Step 3: Document Upload</h3>
-                            <p>Upload the following documents: ID front and back, KRA Pin Certificate</p>
+                            <p>Upload the following documents: ID Card (Both sides), KRA Pin Certificate, ATM Card</p>
                             <div class="upload-container">
                                 <div class="upload-files">
-                                    <label for="input-file" id="drop-area">
-                                        <img src="/images/508-icon.png" alt="Upload icon">
-                                        <p>Drag and drop your files here or click to browse</p>
-                                        <input type="file" accept="image/*,.pdf" id="input-file" multiple>
-                                    </label>
-                                    <p id="fileSizeMessage" style="color: red;"></p>
-                                </div>
-                                <div class="uploaded-files">
-                                    <p>Uploaded Files:</p>
-                                    <div id="uploaded-files-list"></div>
+                                    <!-- ID Card Upload (Front) -->
+                                    <div class="file-upload-group">
+                                        <label for="id-card-front" class="upload-label">ID Card Front</label>
+                                        <input type="file" accept="image/*,.pdf" id="id-card-front" class="file-input" required onchange="FileUploadModule.handleFileUpload(event)">
+                                        <p id="id-card-front-message" class="file-message"></p>
+                                    </div>
+                                    <!-- ID Card Upload (Back) -->
+                                    <div class="file-upload-group">
+                                        <label for="id-card-back" class="upload-label">ID Card Back</label>
+                                        <input type="file" accept="image/*,.pdf" id="id-card-back" class="file-input" required onchange="FileUploadModule.handleFileUpload(event)">
+                                        <p id="id-card-back-message" class="file-message"></p>
+                                    </div>
+                                    <!-- KRA Pin Certificate Upload -->
+                                    <div class="file-upload-group">
+                                        <label for="kra-pin-certificate" class="upload-label">KRA Pin Certificate</label>
+                                        <input type="file" accept="image/*,.pdf" id="kra-pin-certificate" class="file-input" required onchange="FileUploadModule.handleFileUpload(event)">
+                                        <p id="kra-pin-certificate-message" class="file-message"></p>
+                                    </div>
+                                    <!-- ATM Card Upload -->
+                                    <div class="file-upload-group">
+                                        <label for="atm-card" class="upload-label">ATM Card</label>
+                                        <input type="file" accept="image/*,.pdf" id="atm-card" class="file-input" required onchange="FileUploadModule.handleFileUpload(event)">
+                                        <p id="atm-card-message" class="file-message"></p>
+                                    </div>
+
                                 </div>
                             </div>
                             <button type="button" class="skip-btn" data-skip="4">Skip</button>
@@ -628,14 +684,19 @@
         const FileUploadModule = {
             handleFileUpload(event) {
                 const files = event.target.files;
-                fileList.innerHTML = '';
+                const fileList = document.getElementById('uploaded-files-list');
+                fileList.innerHTML = '';  // Clear previous file list
 
+                // Loop through each file and handle accordingly
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     if (this.isValidFile(file)) {
                         const listItem = document.createElement('div');
                         listItem.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
                         fileList.appendChild(listItem);
+                        
+                        // Here, you can create an object to store the files individually
+                        this.addFile(file);
                     } else {
                         showFlashMessage(`File ${file.name} is not allowed. Please upload only PDF or JPG files under 5MB.`, 'error');
                     }
@@ -643,18 +704,60 @@
             },
 
             isValidFile(file) {
+                // Check if the file type is allowed (PDF, JPG, PNG)
+                const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+                const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
                 return ALLOWED_FILE_TYPES.includes(file.type) && file.size <= MAX_FILE_SIZE;
             },
 
+            addFile(file) {
+                // This function can be used to store the file into a form data object or array for backend submission
+                // Here you can customize based on your backend requirements
+                if (!this.files) {
+                    this.files = {}; // Store the files in an object
+                }
+
+                if (file.name.toLowerCase().includes("id card front")) {
+                    this.files['idCardFront'] = file;
+                } else if (file.name.toLowerCase().includes("id card back")) {
+                    this.files['idCardBack'] = file;
+                } else if (file.name.toLowerCase().includes("kra pin")) {
+                    this.files['kraPinCertificate'] = file;
+                } else if (file.name.toLowerCase().includes("atm card")) {
+                    this.files['atmCard'] = file;
+                }
+            },
+
             validateFileUploads() {
-                if (fileList.children.length === 0) {
-                    showFlashMessage('Please upload at least one document.', 'error');
-                    return false;
+                // Ensure that all required files have been uploaded
+                const requiredFiles = ['idCardFront', 'idCardBack', 'kraPinCertificate', 'atmCard'];
+                
+                for (let fileKey of requiredFiles) {
+                    if (!this.files || !this.files[fileKey]) {
+                        showFlashMessage(`Please upload the ${this.getFileLabel(fileKey)}.`, 'error');
+                        return false;
+                    }
                 }
                 return true;
+            },
+
+            getFileLabel(fileKey) {
+                // Get the label for each file type based on the key
+                switch (fileKey) {
+                    case 'idCardFront':
+                        return 'ID Card Front';
+                    case 'idCardBack':
+                        return 'ID Card Back';
+                    case 'kraPinCertificate':
+                        return 'KRA Pin Certificate';
+                    case 'atmCard':
+                        return 'ATM Card';
+                    default:
+                        return 'Unknown file';
+                }
             }
         };
-
         // Webcam Module
         const WebcamModule = {
         stream: null,

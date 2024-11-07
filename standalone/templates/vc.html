@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width="device-width", initial-scale=1.0">
     <title>Annuity Verification Certificate</title>
+    
     <style>
         body, html {
             font-family: Arial, sans-serif;
@@ -220,10 +221,50 @@
             align-items: center;
             background: #DCDCDC;
             width:300px;
-            height:210px;
+            height:205px;
         }
         #signature-pad-1 {
             background: #fff;
+        }
+        /* Buttons */
+        .form-group .buttons{
+            font-family: 'Montserrat', arial, serif;
+            font-size: large;
+            cursor: pointer;
+        }
+        .buttons #cancel {
+            background-color: #A9A9A9;
+            color: #fff;
+        }
+        .buttons #accept {
+            background-color: #3471d6;
+            color: #fff;
+            margin-left: 50px;
+        }
+        /* Align radio buttons horizontally */
+        .form-group input[type="radio"] {
+            margin-right: 10px;
+            display: inline-block;
+        }
+
+        .form-group label {
+            margin-right: 20px;
+            display: inline-block;
+        }
+
+        /* Align checkbox horizontally */
+        .form-group input[type="checkbox"] {
+            margin-right: 10px;
+            display: inline-block;
+        }
+
+        /* Optional: add some space between the checkbox and label */
+        .form-group input[type="checkbox"] + label {
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .form-group a {
+            text-decoration: none;
         }
         .modal {
             display: none;
@@ -233,12 +274,12 @@
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
+            overflow: none;
             background-color: rgba(0,0,0,0.4);
         }
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto;
+            margin: 5% auto;
             padding: 20px;
             border: 1px solid #888;
             width: 80%;
@@ -271,6 +312,7 @@
         .flash-message.error { background-color: #f44336; }
         .flash-message.info { background-color: #2196F3; }
     </style>
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
 </head>
 <body>
     <div class="overlay">
@@ -380,8 +422,8 @@
                                 <label for="signature-pad-1">Sign Here:</label>
                                 <canvas id="signature-pad-1" width="250" height="150"></canvas>
                                 <div class="buttons">
-                                    <button type="button" id="cancel-1">Cancel</button>
-                                    <button type="button" id="accept-1">Accept</button>
+                                    <button type="button" class="btn btn-danger btn-sm" id="cancel">Cancel</button>
+                                    <button type="button" class="btn btn-primary btn-sm" id="accept">Accept</button>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -926,11 +968,11 @@
                 const canvas = document.getElementById('signature-pad-1');
                 signaturePad = new SignaturePad(canvas);
 
-                document.getElementById('cancel-1').addEventListener('click', () => {
+                document.getElementById('cancel').addEventListener('click', () => {
                     signaturePad.clear();
                 });
 
-                document.getElementById('accept-1').addEventListener('click', () => {
+                document.getElementById('accept').addEventListener('click', () => {
                     if (signaturePad.isEmpty()) {
                         showFlashMessage('Please provide a signature first.', 'error');
                     } else {

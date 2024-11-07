@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submissions Dashboard</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .table-responsive {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .img-thumbnail {
+            max-width: 100px;
+            height: auto;
+        }
+        .search-bar {
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+    </style>
+    <script>
+        // JavaScript function to filter table based on search input
+        function searchTable() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let table = document.getElementById('submissionsTable');
+            let rows = table.getElementsByTagName('tr');
+            for (let i = 1; i < rows.length; i++) {
+                let cells = rows[i].getElementsByTagName('td');
+                let match = false;
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().indexOf(input) > -1) {
+                        match = true;
+                        break;
+                    }
+                }
+                rows[i].style.display = match ? '' : 'none';
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container my-5">
+        <h2 class="mb-4">Submissions Dashboard</h2>
+
+        <!-- Search Input -->
+        <input type="text" id="searchInput" class="form-control search-bar" onkeyup="searchTable()" placeholder="Search for submissions...">
+
+        <!-- Submissions Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="submissionsTable">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Policy No.</th>
+                        <th>Name</th>
+                        <th>ID Number</th>
+                        <th>Email</th>
+                        <th>Documents</th>
+                        <th>Captured Image</th>
+                        <th>Signature</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Sample Data Row; Replace with actual backend-generated rows -->
+                    <tr>
+                        <td>ANN456</td>
+                        <td>John Doe</td>
+                        <td>12345678</td>
+                        <td>johndoe@example.com</td>
+                        <td><a href="#" class="btn btn-link" download>Download Document</a></td>
+                        <td><img src="https://via.placeholder.com/100" alt="Captured Image" class="img-thumbnail"></td>
+                        <td><img src="https://via.placeholder.com/100" alt="Signature" class="img-thumbnail"></td>
+                        <td>
+                            <!-- View Button links to individual submission page -->
+                            <a href="vc_submission_details.html?id=1" class="btn btn-primary btn-sm">View</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

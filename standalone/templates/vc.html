@@ -87,40 +87,6 @@
             align-items: center;
             font-family: 'Montserrat', Arial, sans-serif;
         }
-        .sidebar li::before {
-            content: attr(data-step);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            font-size: 14px;
-            margin-right: 10px;
-            background-color: #2c2e3a;
-            color: #f4f4f4;
-        }
-
-        .sidebar li.active::before {
-            background-color: #f4f4f4;
-            color: #2c2e3a;
-        }
-
-        .sidebar li::after {
-            content: '';
-            position: absolute;
-            left: 15px;
-            top: 40px;
-            height: 40px;
-            width: 2px;
-            background: #777;
-        }
-
-        .sidebar li:last-child::after {
-            display: none;
-        }
-
         .sidebar li.active {
             font-weight: bold;
             color: #f4f4f4;
@@ -317,10 +283,10 @@
                 <div class="sidebar">
                     <h3>Progress</h3>
                     <ul>
-                        <li><a href="#" class="step-link active" data-step="1">Personal Info</a></li>
-                        <li><a href="#" class="step-link" data-step="2">Identity Verification</a></li>
-                        <li><a href="#" class="step-link" data-step="3">Document Upload</a></li>
-                        <li><a href="#" class="step-link inactive" data-step="4">Submission</a></li>
+                        <li><a href="#" class="step-link active" data-step="1">Step 1: Personal Info</a></li>
+                        <li><a href="#" class="step-link" data-step="2">Step 2: Identity Verification</a></li>
+                        <li><a href="#" class="step-link" data-step="3">Step 3: Document Upload</a></li>
+                        <li><a href="#" class="step-link inactive" data-step="4">Step 4: Submission</a></li>
                     </ul>
                 </div>
                 <div class="main-content">

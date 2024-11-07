@@ -194,19 +194,107 @@
         .row input {
             flex: 1;
         }
+        
+        /* Identity verification container */
         .identity-ver {
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
         }
-        .video-wrap, .canvas-container {
+
+        /* Video wrap container */
+        .video-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
             margin-bottom: 20px;
         }
-        #video, #canvas {
-            border: 1px solid #ddd;
-            max-width: 100%;
+
+        /* Video element styling */
+        #video {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            border: 3px solid #ddd;
         }
-        /* General Container */
+
+        /* Canvas styling */
+        #canvas {
+            width: 100%;
+            height: 200px;
+            border-radius: 10px;
+            border: 3px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        /* Button container and button styles */
+        .canvas-btn {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+        }
+        button#redo {
+            background-color: #e74c3c;
+        }
+
+        button#redo:hover {
+            background-color: #c0392b;
+        }
+        * Feedback message styling */
+        #feedback {
+            font-size: 14px;
+            color: #2ecc71;
+            margin-top: 15px;
+        }
+
+        /* Loading spinner and feedback styles */
+        #feedback.error {
+            color: #e74c3c;
+        }
+
+        /* Optional overlay and spinner for loading state */
+        #verification-loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            display: none;
+        }
+
+        #verification-loading .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #verification-loading.show {
+            display: block;
+        }
+
+        /* File Upload styles */
         .upload-container {
             width: 90%;
             margin-top: 20px;
@@ -419,24 +507,21 @@
                         </div>
                         <div class="form-step" id="step2">
                             <h3>Step 2: Identity Verification</h3>
-                            <p>Please enable your camera to take a selfie. Look straight into the camera.</p>
-                            <div class="identity-ver">
-                                <div class="video-wrap">
-                                    <video id="video" playsinline autoplay></video>
-                                    <div class="controller">
-                                        <button type="button" id="snap">Capture</button>
-                                    </div>
-                                </div>
-                                <div class="canvas-container">
-                                    <h4>Check Selfie</h4>
-                                    <p>Make sure your selfie clearly shows your face</p>
-                                    <canvas id="canvas" width="300" height="300"></canvas>
-                                    <div class="canvas-btn">
-                                        <button type="button" id="redo">Redo</button>
-                                        <button type="button" id="confirm">Confirm</button>
-                                    </div>
-                                </div>
+                            <p>Please ensure the photo is clear and your face is fully visible.</p>
+
+                            <!-- Webcam video wrap -->
+                            <div class="video-wrap">
+                                <video id="video" autoplay></video>
+                                <canvas id="canvas"></canvas>
                             </div>
+
+                            <div class="canvas-btn">
+                                <!-- Capture and confirm buttons -->
+                                <button id="capture-btn">Capture Photo</button>
+                                <button id="confirm-btn" disabled>Confirm Photo</button>
+                                <button id="redo-btn" disabled>Redo</button>
+                            </div>
+                            <div id="feedback"></div>
                             <button type="button" class="skip-btn" data-skip="3">Skip</button>
                         </div>
                         <div class="form-step" id="step3">
@@ -576,6 +661,7 @@
         const snapButton = document.getElementById('snap');
         const redoButton = document.getElementById('redo');
         const confirmButton = document.getElementById('confirm');
+        const controller = document.querySelector('.controller');
         const fileInput = document.getElementById('input-file');
         const fileList = document.getElementById('uploaded-files-list');
         const flashMessageElement = document.getElementById('flashMessage');
@@ -638,7 +724,7 @@
                     const rule = this.rules[input.id] || (() => true);
                     if (!rule(input.value)) {
                         isValid = false;
-                        this.showError(input, `Invalid ${input.name}`);
+                        this.showError(input, `Invalid ${input.name}`);  // Optional: Customize this message
                     } else {
                         this.clearError(input);
                     }
@@ -662,24 +748,58 @@
 
             showError(input, message) {
                 let errorElement = input.nextElementSibling;
+                
+                // Create the error message element if it doesn't exist
                 if (!errorElement || !errorElement.classList.contains('error-message')) {
                     errorElement = document.createElement('div');
                     errorElement.classList.add('error-message');
                     input.parentNode.insertBefore(errorElement, input.nextSibling);
                 }
-                errorElement.textContent = message;
+                
+                // Add the error message and exclamation mark
+                errorElement.textContent = `❌ ${message}`;
+                
+                // Add red outline to the invalid input field
                 input.classList.add('error');
             },
 
             clearError(input) {
                 const errorElement = input.nextElementSibling;
+                
+                // Remove error message if it exists
                 if (errorElement && errorElement.classList.contains('error-message')) {
                     errorElement.remove();
                 }
+                
+                // Remove red outline from the input field
                 input.classList.remove('error');
             }
         };
 
+        // Styling for the validation feedback
+        const styles = `
+            .error {
+                border: 2px solid red;  /* Red border for invalid fields */
+                background-color: #ffefef; /* Light red background to highlight the error */
+            }
+
+            .error-message {
+                color: red;
+                font-size: 12px;
+                margin-top: 5px;
+                display: inline-block;
+            }
+
+            .error-message::before {
+                content: "❌";  /* Exclamation mark or icon */
+                margin-right: 5px;
+            }
+        `;
+
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = styles;
+        document.head.appendChild(styleSheet);
         // File Upload Module
         const FileUploadModule = {
             handleFileUpload(event) {
@@ -760,312 +880,74 @@
         };
         // Webcam Module
         const WebcamModule = {
-        stream: null,
-        livenessChecks: { blinkDetected: false, movementDetected: false },
-        isProcessing: false,
-        onPhotoConfirmed: null,
+            videoElement: document.getElementById('video'),
+            canvasElement: document.getElementById('canvas'),
+            captureBtn: document.getElementById('capture-btn'),
+            confirmBtn: document.getElementById('confirm-btn'),
+            redoBtn: document.getElementById('redo-btn'),
+            feedback: document.getElementById('feedback'),
 
-        async init(options = {}) {
-            try {
-            this.onPhotoConfirmed = options.onPhotoConfirmed || null;
-            await this.checkBrowserSupport();
-            this.createElements();
-            this.adjustLayout();
-            await this.startWebcam();
-            this.setupEventListeners();
-            return true;
-            } catch (error) {
-            this.handleError(error);
-            return false;
-            }
-        },
+            // Start webcam stream
+            startWebcam() {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        this.videoElement.srcObject = stream;
+                    })
+                    .catch(error => {
+                        console.error("Error accessing webcam: ", error);
+                        this.feedback.textContent = "Could not access webcam.";
+                    });
+            },
 
-        setupEventListeners() {
-            const snapButton = document.getElementById('snapButton');
-            const redoButton = document.getElementById('redoButton');
-            const confirmButton = document.getElementById('confirmButton');
+            // Capture photo and display it on canvas
+            capturePhoto() {
+                const context = this.canvasElement.getContext('2d');
+                context.drawImage(this.videoElement, 0, 0, this.canvasElement.width, this.canvasElement.height);
+                this.captureBtn.disabled = true;  // Disable capture button
+                this.confirmBtn.disabled = false; // Enable confirm button
+                this.redoBtn.disabled = false;    // Enable redo button
+                this.feedback.textContent = "Photo captured. Please confirm or redo.";
+            },
 
-            snapButton?.addEventListener('click', () => this.takeSnapshot());
-            redoButton?.addEventListener('click', () => this.redoPhoto());
-            confirmButton?.addEventListener('click', () => this.confirmPhoto());
-        },
+            // Confirm the photo
+            confirmPhoto() {
+                this.feedback.textContent = "Photo confirmed!";
+                // Optionally, you can send the captured photo to the server here
+            },
 
-        async checkBrowserSupport() {
-            if (!navigator.mediaDevices?.getUserMedia) {
-            throw new Error("Camera access is not supported in this browser");
-            }
-        },
+            // Redo the photo
+            redoPhoto() {
+                const context = this.canvasElement.getContext('2d');
+                context.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
+                this.captureBtn.disabled = false;  // Enable capture button
+                this.confirmBtn.disabled = true;   // Disable confirm button
+                this.redoBtn.disabled = true;      // Disable redo button
+                this.feedback.textContent = "Please capture a new photo.";
+            },
 
-        createElements() {
-            this.createFeedbackElement();
-            this.createOverlayElement();
-            this.createLoadingIndicator();
-        },
-
-        async startWebcam() {
-            try {
-            this.stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, 
-                audio: false 
-            });
-            
-            const video = document.getElementById('video');
-            video.srcObject = this.stream;
-            await video.play();
-            
-            const canvas = document.getElementById('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            
-            this.startLivenessDetection();
-            this.updateFeedback("Please position your face within the green outline");
-            } catch (error) {
-            this.handleError(new Error("Unable to access the camera. Please ensure you've granted permission."));
-            }
-        },
-
-        stopWebcam() {
-            this.stream?.getTracks().forEach(track => track.stop());
-            this.stream = null;
-            document.getElementById('video').srcObject = null;
-            this.stopLivenessDetection();
-            this.cleanup();
-        },
-
-        cleanup() {
-            this.removeFeedbackElement();
-            this.removeOverlayElement();
-            this.removeLoadingIndicator();
-            this.resetState();
-        },
-
-        resetState() {
-            this.livenessChecks = { blinkDetected: false, movementDetected: false };
-            this.isProcessing = false;
-        },
-
-        setLoadingState(isLoading) {
-            this.isProcessing = isLoading;
-            document.getElementById('verification-loading').classList.toggle('hidden', !isLoading);
-            document.getElementById('snapButton').disabled = isLoading;
-            document.getElementById('redoButton').disabled = isLoading;
-        },
-
-        adjustLayout() {
-            // (existing layout adjustment code)
-            if (!this.layoutStyle) {
-                this.layoutStyle = document.createElement('style');
-                this.layoutStyle.id = 'webcam-layout-style';
-                document.head.appendChild(this.layoutStyle);
-            }
-            this.layoutStyle.textContent = `
-                body, html {
-                    height: 100%;
-                    margin: 0;
-                    overflow: hidden;
-                }
-                .overlay {
-                    display: flex;
-                    flex-direction: column;
-                    height: 100vh;
-                    overflow: hidden;
-                }
-                .identity-ver {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                    padding: 20px;
-                    position: relative;
-                }
-                #video, #canvas {
-                    max-width: 100%;
-                    max-height: 70vh;
-                    width: auto;
-                    height: auto;
-                }
-                .video-wrap {
-                    position: relative;
-                    width: 100%;
-                    max-width: 640px;
-                    margin: 0 auto;
-                }
-                .button-container {
-                    margin-top: 20px;
-                    display: flex;
-                    gap: 10px;
-                    justify-content: center;
-                }
-                .button {
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 16px;
-                    transition: background-color 0.3s;
-                }
-                .button:disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
-                }
-            `;
-        },
-
-        createLoadingIndicator() {
-            // (existing loading indicator creation code)
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.id = 'verification-loading';
-            loadingIndicator.className = 'loading-indicator hidden';
-            loadingIndicator.innerHTML = `
-                <div class="spinner"></div>
-                <div class="loading-text">Verifying...</div>
-            `;
-            document.querySelector('.identity-ver').appendChild(loadingIndicator);
-            
-            // Add CSS for loading indicator
-            const style = document.createElement('style');
-            style.textContent = `
-                .loading-indicator {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: rgba(0, 0, 0, 0.8);
-                    color: white;
-                    padding: 20px;
-                    border-radius: 10px;
-                    text-align: center;
-                    z-index: 1000;
-                }
-                .loading-indicator.hidden {
-                    display: none;
-                }
-                .spinner {
-                    width: 40px;
-                    height: 40px;
-                    border: 4px solid #f3f3f3;
-                    border-top: 4px solid #3498db;
-                    border-radius: 50%;
-                    animation: spin 1s linear infinite;
-                    margin: 0 auto 10px;
-                }
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-            `;
-            document.head.appendChild(style);
-        },
-
-        updateFeedback(message) {
-            if (this.feedbackElement) {
-                const timestamp = new Date().toLocaleTimeString();
-                this.feedbackElement.textContent = `[${timestamp}] ${message}`;
-                console.log(`Feedback: ${message}`); // For debugging
-            }
-        },
-
-        handleError(error) {
-            console.error('WebcamModule Error:', error);
-            this.updateFeedback(error.message);
-            this.setLoadingState(false);
-            
-            // Log additional debugging information
-            if (error instanceof Error) {
-                console.debug({
-                    name: error.name,
-                    message: error.message,
-                    stack: error.stack,
-                    timestamp: new Date().toISOString()
-                });
-            }
-            
-            if (error.message.includes('camera') || error.message.includes('permission')) {
-                this.stopWebcam();
-            }
-        },
-
-        async takeSnapshot() {
-            if (!this.validateLivenessChecks()) return;
-            
-            this.setLoadingState(true);
-            this.updateFeedback("Processing your photo...");
-
-            try {
-            const canvas = document.getElementById('canvas');
-            const video = document.getElementById('video');
-            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
-            const verificationResult = await this.verifyFaceWithRetry(blob);
-            
-            if (verificationResult.success) {
-                this.updateFeedback("Photo captured and verified successfully! ✓");
-                this.toggleElements(true);
-                this.stopLivenessDetection();
-            } else {
-                throw new Error(verificationResult.message || "Face verification failed");
-            }
-            } catch (error) {
-            this.handleError(error);
-            } finally {
-            this.setLoadingState(false);
-            }
-        },
-
-        async verifyFaceWithBackend(blob) {
-            const formData = new FormData();
-            formData.append('image_file', blob, 'image.jpg');
-
-            const apiKey = 'your_face_api_key';
-            const apiSecret = 'your_face_api_secret';
-            const apiUrl = 'https://api-us.faceplusplus.com/facepp/v3/detect';
-
-            try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                'api_key': apiKey,
-                'api_secret': apiSecret
-                }
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                if (result.faces && result.faces.length > 0) {
-                return { success: true, message: 'Face detected successfully' };
+            // Validate the selfie (used in the Validation module)
+            validateSelfie() {
+                const context = this.canvasElement.getContext('2d');
+                const imageData = context.getImageData(0, 0, this.canvasElement.width, this.canvasElement.height);
+                // Simple validation: Check if the image is not blank
+                if (imageData.data.some(value => value !== 0)) {
+                    return true; // Selfie is valid
                 } else {
-                return { success: false, message: 'No face detected' };
+                    this.feedback.textContent = "Please capture a valid photo.";
+                    return false; // Selfie is invalid
                 }
-            } else {
-                const errorData = await response.json();
-                throw new Error(`Face verification failed: ${errorData.error_message}`);
             }
-            } catch (error) {
-            console.error('Face verification error:', error);
-            throw error;
-            }
-        },
-
-        async verifyFaceWithRetry(blob, attempts = 0) {
-            try {
-            return await this.verifyFaceWithBackend(blob);
-            } catch (error) {
-            if (attempts < MAX_RETRIES && this.shouldRetry(error)) {
-                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-                return this.verifyFaceWithRetry(blob, attempts + 1);
-            }
-            throw error;
-            }
-        },
-
-        shouldRetry(error) {
-            // Implement your retry logic here, e.g., check for specific error messages or HTTP status codes
-            return error.message.includes('timeout') || error.message.includes('network');
-        }
         };
+
+        // Initialize webcam and set up event listeners
+        window.addEventListener('DOMContentLoaded', () => {
+            WebcamModule.startWebcam();
+
+            WebcamModule.captureBtn.addEventListener('click', () => WebcamModule.capturePhoto());
+            WebcamModule.confirmBtn.addEventListener('click', () => WebcamModule.confirmPhoto());
+            WebcamModule.redoBtn.addEventListener('click', () => WebcamModule.redoPhoto());
+        });
+
 
         // Signature Module
         const SignatureModule = {

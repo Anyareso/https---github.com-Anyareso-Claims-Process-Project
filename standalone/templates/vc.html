@@ -647,522 +647,311 @@
 
         // Webcam Module
         const WebcamModule = {
-            stream: null,
-            livenessChecks: {
-                blinkDetected: false,
-                movementDetected: false,
-            },
-            lastBlinkFrame: null,
-            lastMovementFrame: null,
-            blinkCheckInterval: null,
-            movementCheckInterval: null,
-            feedbackElement: null,
-            overlayElement: null,
-            layoutStyle: null,
-            isProcessing: false,
-            onPhotoConfirmed: null, // Callback for when photo is confirmed
+        stream: null,
+        livenessChecks: { blinkDetected: false, movementDetected: false },
+        isProcessing: false,
+        onPhotoConfirmed: null,
 
-            // Initialize the module
-            async init(options = {}) {
-                try {
-                    this.onPhotoConfirmed = options.onPhotoConfirmed || null;
-                    await this.checkBrowserSupport();
-                    this.createElements();
-                    this.adjustLayout();
-                    await this.startWebcam();
-                    this.setupEventListeners();
-                    return true;
-                } catch (error) {
-                    console.error("Initialization error:", error);
-                    this.handleError(error);
-                    return false;
-                }
-            },
-
-            // Setup event listeners for buttons
-            setupEventListeners() {
-                const snapButton = document.getElementById('snapButton');
-                const redoButton = document.getElementById('redoButton');
-                const confirmButton = document.getElementById('confirmButton');
-
-                if (snapButton) {
-                    snapButton.addEventListener('click', () => this.takeSnapshot());
-                }
-                if (redoButton) {
-                    redoButton.addEventListener('click', () => this.redoPhoto());
-                }
-                if (confirmButton) {
-                    confirmButton.addEventListener('click', () => {
-                        if (this.confirmPhoto() && this.onPhotoConfirmed) {
-                            const canvas = document.getElementById('canvas');
-                            canvas.toBlob(blob => {
-                                this.onPhotoConfirmed(blob);
-                            }, 'image/jpeg', 0.95);
-                        }
-                    });
-                }
-            },
-
-            // Check browser support for required features
-            async checkBrowserSupport() {
-                if (!navigator.mediaDevices?.getUserMedia) {
-                    throw new Error("Camera access is not supported in this browser");
-                }
-            },
-
-            // Create UI elements
-            createElements() {
-                this.createFeedbackElement();
-                this.createOverlayElement();
-                this.createLoadingIndicator();
-            },
-
-            async startWebcam() {
-                try {
-                    this.stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { 
-                            facingMode: "user",
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        }, 
-                        audio: false 
-                    });
-                    
-                    const video = document.getElementById('video');
-                    video.srcObject = this.stream;
-                    await video.play();
-                    
-                    // Set canvas dimensions to match video
-                    const canvas = document.getElementById('canvas');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    
-                    this.startLivenessDetection();
-                    this.updateFeedback("Please position your face within the green outline");
-                } catch (error) {
-                    console.error("Error accessing the camera", error);
-                    this.handleError(new Error("Unable to access the camera. Please ensure you've granted permission."));
-                }
-            },
-
-            stopWebcam() {
-                if (this.stream) {
-                    this.stream.getTracks().forEach(track => track.stop());
-                    this.stream = null;
-                }
-                const video = document.getElementById('video');
-                video.srcObject = null;
-                this.stopLivenessDetection();
-                this.cleanup();
-            },
-
-            cleanup() {
-                this.removeFeedbackElement();
-                this.removeOverlayElement();
-                this.removeLoadingIndicator();
-                this.resetLayout();
-                this.resetState();
-            },
-
-            resetState() {
-                this.livenessChecks = {
-                    blinkDetected: false,
-                    movementDetected: false,
-                };
-                this.lastBlinkFrame = null;
-                this.lastMovementFrame = null;
-                this.isProcessing = false;
-            },
-
-            createLoadingIndicator() {
-                const loadingIndicator = document.createElement('div');
-                loadingIndicator.id = 'verification-loading';
-                loadingIndicator.className = 'loading-indicator hidden';
-                loadingIndicator.innerHTML = `
-                    <div class="spinner"></div>
-                    <div class="loading-text">Verifying...</div>
-                `;
-                document.querySelector('.identity-ver').appendChild(loadingIndicator);
-                
-                // Add CSS for loading indicator
-                const style = document.createElement('style');
-                style.textContent = `
-                    .loading-indicator {
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        background: rgba(0, 0, 0, 0.8);
-                        color: white;
-                        padding: 20px;
-                        border-radius: 10px;
-                        text-align: center;
-                        z-index: 1000;
-                    }
-                    .loading-indicator.hidden {
-                        display: none;
-                    }
-                    .spinner {
-                        width: 40px;
-                        height: 40px;
-                        border: 4px solid #f3f3f3;
-                        border-top: 4px solid #3498db;
-                        border-radius: 50%;
-                        animation: spin 1s linear infinite;
-                        margin: 0 auto 10px;
-                    }
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                `;
-                document.head.appendChild(style);
-            },
-
-            setLoadingState(isLoading) {
-                this.isProcessing = isLoading;
-                const loadingIndicator = document.getElementById('verification-loading');
-                const snapButton = document.getElementById('snapButton');
-                const redoButton = document.getElementById('redoButton');
-                
-                if (isLoading) {
-                    loadingIndicator.classList.remove('hidden');
-                    snapButton.disabled = true;
-                    redoButton.disabled = true;
-                } else {
-                    loadingIndicator.classList.add('hidden');
-                    snapButton.disabled = false;
-                    redoButton.disabled = false;
-                }
-            },
-
-            adjustLayout() {
-                if (!this.layoutStyle) {
-                    this.layoutStyle = document.createElement('style');
-                    this.layoutStyle.id = 'webcam-layout-style';
-                    document.head.appendChild(this.layoutStyle);
-                }
-                this.layoutStyle.textContent = `
-                    body, html {
-                        height: 100%;
-                        margin: 0;
-                        overflow: hidden;
-                    }
-                    .overlay {
-                        display: flex;
-                        flex-direction: column;
-                        height: 100vh;
-                        overflow: hidden;
-                    }
-                    .identity-ver {
-                        flex: 1;
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: center;
-                        align-items: center;
-                        padding: 20px;
-                        position: relative;
-                    }
-                    #video, #canvas {
-                        max-width: 100%;
-                        max-height: 70vh;
-                        width: auto;
-                        height: auto;
-                    }
-                    .video-wrap {
-                        position: relative;
-                        width: 100%;
-                        max-width: 640px;
-                        margin: 0 auto;
-                    }
-                    .button-container {
-                        margin-top: 20px;
-                        display: flex;
-                        gap: 10px;
-                        justify-content: center;
-                    }
-                    .button {
-                        padding: 10px 20px;
-                        border: none;
-                        border-radius: 5px;
-                        cursor: pointer;
-                        font-size: 16px;
-                        transition: background-color 0.3s;
-                    }
-                    .button:disabled {
-                        opacity: 0.5;
-                        cursor: not-allowed;
-                    }
-                `;
-            },
-
-            createFeedbackElement() {
-                this.feedbackElement = document.createElement('div');
-                this.feedbackElement.id = 'liveness-feedback';
-                this.feedbackElement.style.position = 'absolute';
-                this.feedbackElement.style.bottom = '10px';
-                this.feedbackElement.style.left = '0';
-                this.feedbackElement.style.width = '100%';
-                this.feedbackElement.style.textAlign = 'center';
-                this.feedbackElement.style.color = 'white';
-                this.feedbackElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                this.feedbackElement.style.padding = '5px';
-                this.feedbackElement.style.zIndex = '10';
-                document.querySelector('.identity-ver').appendChild(this.feedbackElement);
-            },
-
-            createOverlayElement() {
-                this.overlayElement = document.createElement('div');
-                this.overlayElement.id = 'face-guide-overlay';
-                this.overlayElement.style.position = 'absolute';
-                this.overlayElement.style.top = '0';
-                this.overlayElement.style.left = '0';
-                this.overlayElement.style.width = '100%';
-                this.overlayElement.style.height = '100%';
-                this.overlayElement.style.pointerEvents = 'none';
-                this.overlayElement.style.zIndex = '5';
-
-                const borderElement = document.createElement('div');
-                borderElement.style.position = 'absolute';
-                borderElement.style.top = '2%';
-                borderElement.style.left = '2%';
-                borderElement.style.width = '96%';
-                borderElement.style.height = '96%';
-                borderElement.style.border = '3px solid #00ff00';
-                borderElement.style.boxSizing = 'border-box';
-
-                const faceOutline = document.createElement('div');
-                faceOutline.style.position = 'absolute';
-                faceOutline.style.top = '20%';
-                faceOutline.style.left = '25%';
-                faceOutline.style.width = '50%';
-                faceOutline.style.height = '60%';
-                faceOutline.style.border = '2px dashed #00ff00';
-                faceOutline.style.borderRadius = '50%';
-
-                this.overlayElement.appendChild(borderElement);
-                this.overlayElement.appendChild(faceOutline);
-                document.querySelector('.video-wrap').appendChild(this.overlayElement);
-            },
-
-            removeFeedbackElement() {
-                if (this.feedbackElement) {
-                    this.feedbackElement.remove();
-                    this.feedbackElement = null;
-                }
-            },
-
-            removeOverlayElement() {
-                if (this.overlayElement) {
-                    this.overlayElement.remove();
-                    this.overlayElement = null;
-                }
-            },
-
-            
-            toggleElements(showCanvas) {
-                document.querySelector('.canvas-container').style.display = showCanvas ? 'block' : 'none';
-                snapButton.style.display = showCanvas ? 'none' : 'inline-block';
-                redoButton.style.display = showCanvas ? 'inline-block' : 'none';
-                confirmButton.style.display = showCanvas ? 'inline-block' : 'none';
-                video.style.display = showCanvas ? 'none' : 'block';
-                canvas.style.display = showCanvas ? 'block' : 'none';
-            },
-
-            startLivenessDetection() {
-                this.updateFeedback("Please blink and move slightly");
-                this.blinkCheckInterval = setInterval(() => this.checkForBlink(), 200);
-                this.movementCheckInterval = setInterval(() => this.checkForMovement(), 500);
-            },
-
-            stopLivenessDetection() {
-                clearInterval(this.blinkCheckInterval);
-                clearInterval(this.movementCheckInterval);
-            },
-
-            async checkForBlink() {
-                if (this.isProcessing) return;
-
-                const canvas = document.getElementById('canvas');
-                const video = document.getElementById('video');
-                const context = canvas.getContext('2d');
-                
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const frame = context.getImageData(0, 0, canvas.width, canvas.height);
-                const totalBrightness = frame.data.reduce((sum, value, index) => 
-                    (index % 4 !== 3) ? sum + value : sum, 0);
-                
-                if (this.lastBlinkFrame) {
-                    const brightnessDiff = Math.abs(totalBrightness - this.lastBlinkFrame);
-                    if (brightnessDiff > BLINK_THRESHOLD) {
-                        this.livenessChecks.blinkDetected = true;
-                        this.updateFeedback("Blink detected! ✓");
-                        this.updateLivenessStatus();
-                    }
-                }
-                this.lastBlinkFrame = totalBrightness;
-            },
-
-            async checkForMovement() {
-                if (this.isProcessing) return;
-
-                const canvas = document.getElementById('canvas');
-                const video = document.getElementById('video');
-                const context = canvas.getContext('2d');
-                
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const frame = context.getImageData(0, 0, canvas.width, canvas.height);
-                
-                if (this.lastMovementFrame) {
-                    let diff = 0;
-                    for (let i = 0; i < frame.data.length; i += 4) {
-                        diff += Math.abs(frame.data[i] - this.lastMovementFrame.data[i]);
-                    }
-                    if (diff > MOVEMENT_THRESHOLD) {
-                        this.livenessChecks.movementDetected = true;
-                        this.updateFeedback("Movement detected! ✓");
-                        this.updateLivenessStatus();
-                    }
-                }
-                this.lastMovementFrame = frame;
-            },
-
-            updateLivenessStatus() {
-                if (this.livenessChecks.blinkDetected && this.livenessChecks.movementDetected) {
-                    this.updateFeedback("Liveness checks passed! You can take a photo now.");
-                    document.getElementById('snapButton').disabled = false;
-                }
-            },
-
-            async takeSnapshot() {
-                if (!this.validateLivenessChecks()) {
-                    return;
-                }
-
-                try {
-                    this.setLoadingState(true);
-                    this.updateFeedback("Processing your photo...");
-
-                    const canvas = document.getElementById('canvas');
-                    const video = document.getElementById('video');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                    const blob = await this.canvasToBlob(canvas);
-                    const verificationResult = await this.verifyFaceWithRetry(blob);
-
-                    if (verificationResult.success) {
-                        this.toggleElements(true);
-                        this.stopLivenessDetection();
-                        this.updateFeedback("Photo captured and verified successfully! ✓");
-                    } else {
-                        throw new Error(verificationResult.message || "Face verification failed");
-                    }
-                } catch (error) {
-                    console.error('Photo capture error:', error);
-                    this.updateFeedback(error.message || "An error occurred. Please try again.");
-                    this.redoPhoto();
-                } finally {
-                    this.setLoadingState(false);
-                }
-            },
-
-            validateLivenessChecks() {
-                if (!this.livenessChecks.blinkDetected || !this.livenessChecks.movementDetected) {
-                    this.updateFeedback("Please complete the liveness checks first");
-                    return false;
-                }
-                return true;
-            },
-
-            async canvasToBlob(canvas) {
-                return new Promise((resolve, reject) => {
-                    try {
-                        canvas.toBlob(resolve, 'image/jpeg', 0.95);
-                    } catch (error) {
-                        reject(new Error('Failed to convert image'));
-                    }
-                });
-            },
-
-            async verifyFaceWithRetry(imageBlob, attempts = 0) {
-                try {
-                    return await this.timeoutPromise(
-                        this.verifyFaceWithBackend(imageBlob),
-                        API_TIMEOUT
-                    );
-                } catch (error) {
-                    if (attempts < MAX_RETRIES && this.shouldRetry(error)) {
-                        await this.delay(Math.pow(2, attempts) * 1000); // Exponential backoff
-                        return this.verifyFaceWithRetry(imageBlob, attempts + 1);
-                    }
-                    throw error;
-                }
-            },
-
-            async verifyFaceWithBackend(imageBlob) {
-                // For client-side testing, simulate verification
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        resolve({
-                            success: true,
-                            message: "Face verification simulated successfully"
-                        });
-                    }, 1500); // Simulate network delay
-                });
-            },
-
-            // Update feedback with timestamp for debugging
-            updateFeedback(message) {
-                if (this.feedbackElement) {
-                    const timestamp = new Date().toLocaleTimeString();
-                    this.feedbackElement.textContent = `[${timestamp}] ${message}`;
-                    console.log(`Feedback: ${message}`); // For debugging
-                }
-            },
-
-            // Enhanced error handling
-            handleError(error) {
-                console.error('WebcamModule Error:', error);
-                this.updateFeedback(error.message);
-                this.setLoadingState(false);
-                
-                // Log additional debugging information
-                if (error instanceof Error) {
-                    console.debug({
-                        name: error.name,
-                        message: error.message,
-                        stack: error.stack,
-                        timestamp: new Date().toISOString()
-                    });
-                }
-                
-                if (error.message.includes('camera') || error.message.includes('permission')) {
-                    this.stopWebcam();
-                }
-            },
-
-            // Method to get current frame data for debugging
-            async getDebugData() {
-                const canvas = document.getElementById('canvas');
-                const video = document.getElementById('video');
-                const context = canvas.getContext('2d');
-                
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const frame = context.getImageData(0, 0, canvas.width, canvas.height);
-                
-                return {
-                    frameData: {
-                        width: frame.width,
-                        height: frame.height,
-                        dataSize: frame.data.length,
-                    },
-                    livenessChecks: { ...this.livenessChecks },
-                    isProcessing: this.isProcessing,
-                    streamActive: this.stream && this.stream.active,
-                };
+        async init(options = {}) {
+            try {
+            this.onPhotoConfirmed = options.onPhotoConfirmed || null;
+            await this.checkBrowserSupport();
+            this.createElements();
+            this.adjustLayout();
+            await this.startWebcam();
+            this.setupEventListeners();
+            return true;
+            } catch (error) {
+            this.handleError(error);
+            return false;
             }
+        },
+
+        setupEventListeners() {
+            const snapButton = document.getElementById('snapButton');
+            const redoButton = document.getElementById('redoButton');
+            const confirmButton = document.getElementById('confirmButton');
+
+            snapButton?.addEventListener('click', () => this.takeSnapshot());
+            redoButton?.addEventListener('click', () => this.redoPhoto());
+            confirmButton?.addEventListener('click', () => this.confirmPhoto());
+        },
+
+        async checkBrowserSupport() {
+            if (!navigator.mediaDevices?.getUserMedia) {
+            throw new Error("Camera access is not supported in this browser");
+            }
+        },
+
+        createElements() {
+            this.createFeedbackElement();
+            this.createOverlayElement();
+            this.createLoadingIndicator();
+        },
+
+        async startWebcam() {
+            try {
+            this.stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, 
+                audio: false 
+            });
+            
+            const video = document.getElementById('video');
+            video.srcObject = this.stream;
+            await video.play();
+            
+            const canvas = document.getElementById('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            this.startLivenessDetection();
+            this.updateFeedback("Please position your face within the green outline");
+            } catch (error) {
+            this.handleError(new Error("Unable to access the camera. Please ensure you've granted permission."));
+            }
+        },
+
+        stopWebcam() {
+            this.stream?.getTracks().forEach(track => track.stop());
+            this.stream = null;
+            document.getElementById('video').srcObject = null;
+            this.stopLivenessDetection();
+            this.cleanup();
+        },
+
+        cleanup() {
+            this.removeFeedbackElement();
+            this.removeOverlayElement();
+            this.removeLoadingIndicator();
+            this.resetState();
+        },
+
+        resetState() {
+            this.livenessChecks = { blinkDetected: false, movementDetected: false };
+            this.isProcessing = false;
+        },
+
+        setLoadingState(isLoading) {
+            this.isProcessing = isLoading;
+            document.getElementById('verification-loading').classList.toggle('hidden', !isLoading);
+            document.getElementById('snapButton').disabled = isLoading;
+            document.getElementById('redoButton').disabled = isLoading;
+        },
+
+        adjustLayout() {
+            // (existing layout adjustment code)
+            if (!this.layoutStyle) {
+                this.layoutStyle = document.createElement('style');
+                this.layoutStyle.id = 'webcam-layout-style';
+                document.head.appendChild(this.layoutStyle);
+            }
+            this.layoutStyle.textContent = `
+                body, html {
+                    height: 100%;
+                    margin: 0;
+                    overflow: hidden;
+                }
+                .overlay {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100vh;
+                    overflow: hidden;
+                }
+                .identity-ver {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 20px;
+                    position: relative;
+                }
+                #video, #canvas {
+                    max-width: 100%;
+                    max-height: 70vh;
+                    width: auto;
+                    height: auto;
+                }
+                .video-wrap {
+                    position: relative;
+                    width: 100%;
+                    max-width: 640px;
+                    margin: 0 auto;
+                }
+                .button-container {
+                    margin-top: 20px;
+                    display: flex;
+                    gap: 10px;
+                    justify-content: center;
+                }
+                .button {
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    transition: background-color 0.3s;
+                }
+                .button:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+            `;
+        },
+
+        createLoadingIndicator() {
+            // (existing loading indicator creation code)
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.id = 'verification-loading';
+            loadingIndicator.className = 'loading-indicator hidden';
+            loadingIndicator.innerHTML = `
+                <div class="spinner"></div>
+                <div class="loading-text">Verifying...</div>
+            `;
+            document.querySelector('.identity-ver').appendChild(loadingIndicator);
+            
+            // Add CSS for loading indicator
+            const style = document.createElement('style');
+            style.textContent = `
+                .loading-indicator {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 20px;
+                    border-radius: 10px;
+                    text-align: center;
+                    z-index: 1000;
+                }
+                .loading-indicator.hidden {
+                    display: none;
+                }
+                .spinner {
+                    width: 40px;
+                    height: 40px;
+                    border: 4px solid #f3f3f3;
+                    border-top: 4px solid #3498db;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    margin: 0 auto 10px;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+        },
+
+        updateFeedback(message) {
+            if (this.feedbackElement) {
+                const timestamp = new Date().toLocaleTimeString();
+                this.feedbackElement.textContent = `[${timestamp}] ${message}`;
+                console.log(`Feedback: ${message}`); // For debugging
+            }
+        },
+
+        handleError(error) {
+            console.error('WebcamModule Error:', error);
+            this.updateFeedback(error.message);
+            this.setLoadingState(false);
+            
+            // Log additional debugging information
+            if (error instanceof Error) {
+                console.debug({
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            if (error.message.includes('camera') || error.message.includes('permission')) {
+                this.stopWebcam();
+            }
+        },
+
+        async takeSnapshot() {
+            if (!this.validateLivenessChecks()) return;
+            
+            this.setLoadingState(true);
+            this.updateFeedback("Processing your photo...");
+
+            try {
+            const canvas = document.getElementById('canvas');
+            const video = document.getElementById('video');
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+            const verificationResult = await this.verifyFaceWithRetry(blob);
+            
+            if (verificationResult.success) {
+                this.updateFeedback("Photo captured and verified successfully! ✓");
+                this.toggleElements(true);
+                this.stopLivenessDetection();
+            } else {
+                throw new Error(verificationResult.message || "Face verification failed");
+            }
+            } catch (error) {
+            this.handleError(error);
+            } finally {
+            this.setLoadingState(false);
+            }
+        },
+
+        async verifyFaceWithBackend(blob) {
+            const formData = new FormData();
+            formData.append('image_file', blob, 'image.jpg');
+
+            const apiKey = 'your_face_api_key';
+            const apiSecret = 'your_face_api_secret';
+            const apiUrl = 'https://api-us.faceplusplus.com/facepp/v3/detect';
+
+            try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                'api_key': apiKey,
+                'api_secret': apiSecret
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.faces && result.faces.length > 0) {
+                return { success: true, message: 'Face detected successfully' };
+                } else {
+                return { success: false, message: 'No face detected' };
+                }
+            } else {
+                const errorData = await response.json();
+                throw new Error(`Face verification failed: ${errorData.error_message}`);
+            }
+            } catch (error) {
+            console.error('Face verification error:', error);
+            throw error;
+            }
+        },
+
+        async verifyFaceWithRetry(blob, attempts = 0) {
+            try {
+            return await this.verifyFaceWithBackend(blob);
+            } catch (error) {
+            if (attempts < MAX_RETRIES && this.shouldRetry(error)) {
+                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
+                return this.verifyFaceWithRetry(blob, attempts + 1);
+            }
+            throw error;
+            }
+        },
+
+        shouldRetry(error) {
+            // Implement your retry logic here, e.g., check for specific error messages or HTTP status codes
+            return error.message.includes('timeout') || error.message.includes('network');
+        }
         };
 
         // Signature Module

@@ -586,9 +586,14 @@
                                 <label for="personal-relief-no">No</label>
                             </div>
                             <div class="form-group">
-                                <input type="checkbox" id="dataProtection" required>
-                                <label for="dataProtection">I agree that I have read and understood the <a href="#" id="dataProtectionLink">Data Protection Notice</a>.</label>
+                                <input type="checkbox" id="dataProtectionCheckbox" name="dataProtectionCheckbox" required disabled>
+                                <label for="dataProtectionCheckbox">
+                                    I agree that I have read and understood the 
+                                    <a href="#" id="dataProtectionLink">Data Protection Notice</a>.
+                                </label>
                             </div>
+                            
+                            <input type="hidden" id="dataProtectionAccepted" name="dataProtectionAccepted" value="false">                            
                         </div>
                         <div class="button-container">
                             <button type="button" id="prevBtn" class="nav-button" disabled>Previous</button>
@@ -890,7 +895,6 @@
                 }
             }
         };
-        // Webcam Module
         const WebcamModule = {
             videoElement: document.getElementById('video'),
             canvasElement: document.getElementById('canvas'),
@@ -921,10 +925,21 @@
                 this.feedback.textContent = "Photo captured. Please confirm or redo.";
             },
 
-            // Confirm the photo
+            // Confirm the photo and save it to a hidden input field
             confirmPhoto() {
+                const dataURL = this.canvasElement.toDataURL('image/png'); // Convert canvas to data URL
                 this.feedback.textContent = "Photo confirmed!";
-                // Optionally, you can send the captured photo to the server here
+                
+                // Store the data URL in a hidden input field for form submission
+                let photoInput = document.getElementById('photoData');
+                if (!photoInput) {
+                    photoInput = document.createElement('input');
+                    photoInput.type = 'hidden';
+                    photoInput.id = 'photoData';
+                    photoInput.name = 'photoData';
+                    document.getElementById('multiStepForm').appendChild(photoInput);
+                }
+                photoInput.value = dataURL;
             },
 
             // Redo the photo
@@ -941,7 +956,6 @@
             validateSelfie() {
                 const context = this.canvasElement.getContext('2d');
                 const imageData = context.getImageData(0, 0, this.canvasElement.width, this.canvasElement.height);
-                // Simple validation: Check if the image is not blank
                 if (imageData.data.some(value => value !== 0)) {
                     return true; // Selfie is valid
                 } else {
@@ -1005,7 +1019,9 @@
                 acceptButtonId: "completeButton",
                 rejectButtonId: "rejectButton",
                 closeButtonClass: "close",
-                triggerLinkId: "dataProtectionLink"  // Add the link ID here
+                triggerLinkId: "dataProtectionLink",
+                checkboxId: "dataProtectionCheckbox",
+                hiddenInputId: "dataProtectionAccepted"
             };
             
             function init() {
@@ -1018,7 +1034,7 @@
                     return false;
                 }
                 
-                // Get buttons
+                // Get buttons and required elements
                 acceptButton = document.getElementById(config.acceptButtonId);
                 rejectButton = document.getElementById(config.rejectButtonId);
                 closeButton = modal.querySelector(`.${config.closeButtonClass}`);
@@ -1035,33 +1051,29 @@
             }
             
             function addEventListeners() {
-                // Add click event to open modal when clicking on the data protection link
                 const triggerLink = document.getElementById(config.triggerLinkId);
+                
                 if (triggerLink) {
                     triggerLink.addEventListener("click", (event) => {
-                        event.preventDefault();  // Prevent default link behavior
+                        event.preventDefault();
                         open();
                     });
                 }
                 
-                // Close modal when clicking the close button
                 if (closeButton) {
                     closeButton.addEventListener("click", close);
                 }
                 
-                // Close modal when clicking outside
                 window.addEventListener("click", (event) => {
                     if (event.target === modal) {
                         close();
                     }
                 });
                 
-                // Handle accept button click
                 acceptButton.addEventListener("click", () => {
                     handleAccept();
                 });
                 
-                // Handle reject button click
                 rejectButton.addEventListener("click", () => {
                     handleReject();
                 });
@@ -1077,41 +1089,45 @@
             }
             
             function close() {
-                if (!modal) {
-                    return;
-                }
+                if (!modal) return;
+                
                 modal.style.display = "none";
                 modal.classList.remove("active");
             }
             
             function handleAccept() {
                 localStorage.setItem("dataProtectionAccepted", "true");
+                updateFormState(true);
                 showFlashMessage("You have accepted the data protection terms.", "success");
                 close();
-                enableFormSubmission();
             }
             
             function handleReject() {
                 localStorage.setItem("dataProtectionAccepted", "false");
+                updateFormState(false);
                 showFlashMessage("You have rejected the data protection terms. You cannot proceed further.", "warning");
                 close();
-                disableFormSubmission();
             }
             
-            function enableFormSubmission() {
+            function updateFormState(isAccepted) {
+                const checkbox = document.getElementById(config.checkboxId);
+                const hiddenInput = document.getElementById(config.hiddenInputId);
+                
+                if (checkbox) {
+                    checkbox.checked = isAccepted;
+                    checkbox.disabled = true;
+                }
+                
+                if (hiddenInput) {
+                    hiddenInput.value = isAccepted.toString();
+                }
+                
                 const submitButton = document.querySelector("button[type='submit']");
                 if (submitButton) {
-                    submitButton.disabled = false;
+                    submitButton.disabled = !isAccepted;
                 }
             }
             
-            function disableFormSubmission() {
-                const submitButton = document.querySelector("button[type='submit']");
-                if (submitButton) {
-                    submitButton.disabled = true;
-                }
-            }
-
             // Public API
             return {
                 init,
@@ -1121,10 +1137,11 @@
             };
         })();
 
-        // Initialize the modal functionality on DOM content load
-        document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the modal
+        document.addEventListener("DOMContentLoaded", () => {
             DataProtectionModal.init();
         });
+
 
 
         // CSRF Protection
@@ -1154,31 +1171,38 @@
         };
 
         function submitForm() {
+            const form = document.getElementById('multiStepForm'); // Corrected form ID
+            if (!form) {
+                console.error("Form element not found. Ensure the form has id='multiStepForm'.");
+                showFlashMessage('An error occurred. Form element not found.', 'error');
+                return;
+            }
+
             if (Validation.validateStep(totalSteps)) {
                 try {
-                    const formData = new FormData(form);
+                    const formData = new FormData(form); // Initialize FormData with the correct form
                     formData.append('signature', signaturePad.toDataURL());
 
-                    for (let i = 0; i < fileInput.files.length; i++) {
-                        formData.append('documents', fileInput.files[i]);
-                    }
+                    const fileInputs = form.querySelectorAll('input[type="file"]');
+                    fileInputs.forEach(input => {
+                        for (let i = 0; i < input.files.length; i++) {
+                            formData.append(input.id, input.files[i]);
+                        }
+                    });
 
-                    // Here you would typically send the data to a server
-                    // For this example, we'll just log it to the console
                     console.log('Form submitted with the following data:');
                     for (let [key, value] of formData.entries()) {
                         console.log(`${key}: ${value}`);
                     }
 
                     showFlashMessage('Form submitted successfully!', 'success');
-                    // form.reset();
-                    // window.location.href = 'thank-you-page.html';
                 } catch (error) {
                     console.error('Error submitting form:', error);
                     showFlashMessage('An error occurred while submitting the form. Please try again.', 'error');
                 }
             }
         }
+
 
         // Event listeners
         nextBtn.addEventListener('click', () => {

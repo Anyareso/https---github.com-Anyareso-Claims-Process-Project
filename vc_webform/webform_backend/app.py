@@ -47,9 +47,20 @@ def allowed_file(filename):
 def save_file(file):
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        logging.info(f"File saved to {file_path}")
         return filename
     return None
+
+# Helper function to save base64 encoded image data
+def save_base64_image(data, filename):
+    image_data = base64.b64decode(data.split(',')[1])  # Decode base64 data
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    with open(file_path, 'wb') as f:
+        f.write(image_data)
+    logging.info(f"Image saved to {file_path}")
+    return file_path
 
 @app.route('/')
 def main_page():
@@ -61,7 +72,20 @@ def thank_you_page():
 
 @app.route('/submit-form', methods=['POST'])
 def submit_form():
+    print("Reached submit_form function")
+    logging.info("Form submission route accessed")  # Test log message
     try:
+        logging.info("Getting form data...")
+        logging.info("Form submission route accessed")
+        
+        # Log all incoming form data
+        for key, value in request.form.items():
+            logging.info(f"Form data - {key}: {value}")
+
+        # Handle file data as well
+        for file_key, file_value in request.files.items():
+            logging.info(f"File data - {file_key}: {file_value.filename}")
+
         # Get form data
         full_name = request.form['fullName']
         id_number = request.form['idNumber']
@@ -74,7 +98,17 @@ def submit_form():
         personal_relief = request.form['personalRelief'] == 'yes'
         data_protection_accepted = request.form['dataProtectionAccepted'] == 'true'
         photo_data = request.form['photoData']
-        signature_data = request.form['signatureData']
+        signature_data = request.form['signature']
+
+        # Print out the form data to verify it's being captured correctly
+        print(f"Form data: {full_name}, {id_number}, {phone_number}, {email_address}, {photo_data}, {signature_data}")
+
+        # Save base64 photo data
+        photo_filename = f"{id_number}_photo.png"
+        photo_file_path = save_base64_image(photo_data, photo_filename)
+        # Save base64 signature data
+        signature_filename = f"{id_number}_signature.png"
+        signature_file_path = save_base64_image(signature_data, signature_filename)
 
         # Handle file uploads
         id_card_front = save_file(request.files.get('id-card-front'))
@@ -94,8 +128,8 @@ def submit_form():
             email_address=email_address,
             personal_relief=personal_relief,
             data_protection_accepted=data_protection_accepted,
-            photo_data=photo_data,
-            signature_data=signature_data,
+            photo_data=photo_file_path,  # Store file path instead of base64 data
+            signature_data=signature_file_path,  # Store file path instead of base64 data
             id_card_front=id_card_front,
             id_card_back=id_card_back,
             kra_pin_certificate=kra_pin_certificate,
@@ -105,12 +139,16 @@ def submit_form():
         # Save the form submission to the database
         session.add(form_submission)
         session.commit()
-        
-        # Redirect to the thank-you page
-        return redirect(url_for('thank_you_page'))
+
+        # Log success
+        logging.info(f"Form submission for {full_name} added to the database.")
+
+        # Return success response
+        return jsonify({'success': True})
     
     except Exception as e:
         session.rollback()
+        logging.error(f"Error submitting form: {str(e)}")
         return jsonify({"message": f"Error submitting form: {str(e)}"}), 500
 
 if __name__ == '__main__':

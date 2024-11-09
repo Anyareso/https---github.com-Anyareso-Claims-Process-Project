@@ -12,7 +12,7 @@ class FormSubmission(Base):
     kra_pin = Column(String(20), nullable=False)
     address = Column(String(255), nullable=True)
     code = Column(String(20), nullable=True)
-    town = Column(String(100), nullable=Trur)
+    town = Column(String(100), nullable=True)
     email_address = Column(String(100), nullable=False)
     personal_relief = Column(Boolean, nullable=False)
     data_protection_accepted = Column(Boolean, nullable=False)

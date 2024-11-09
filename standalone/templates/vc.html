@@ -541,25 +541,25 @@
                                     <!-- ID Card Upload (Front) -->
                                     <div class="file-upload-group">
                                         <label for="id-card-front" class="upload-label">ID Card Front</label>
-                                        <input type="file" accept="image/*,.pdf" id="id-card-front" class="file-input" required onchange="FileUploadModule.handleFileUpload(event)">
+                                        <input type="file" accept="image/*,.pdf" id="id-card-front" name="id-card-front"   class="file-input"  onchange="FileUploadModule.handleFileUpload(event)">
                                         <p id="id-card-front-message" class="file-message"></p>
                                     </div>
                                     <!-- ID Card Upload (Back) -->
                                     <div class="file-upload-group">
                                         <label for="id-card-back" class="upload-label">ID Card Back</label>
-                                        <input type="file" accept="image/*,.pdf" id="id-card-back" class="file-input" required onchange="FileUploadModule.handleFileUpload(event)">
-                                        <p id="id-card-back-message" class="file-message"></p>
+                                        <input type="file" accept="image/*,.pdf" id="id-card-back" name="id-card-back"  class="file-input"  onchange="FileUploadModule.handleFileUpload(event)">
+                                        <p id="id-card-back-message"   class="file-message"></p>
                                     </div>
                                     <!-- KRA Pin Certificate Upload -->
                                     <div class="file-upload-group">
                                         <label for="kra-pin-certificate" class="upload-label">KRA Pin Certificate</label>
-                                        <input type="file" accept="image/*,.pdf" id="kra-pin-certificate" class="file-input" required onchange="FileUploadModule.handleFileUpload(event)">
+                                        <input type="file" accept="image/*,.pdf" id="kra-pin-certificate" name="kra-pin-certificate"  class="file-input"  onchange="FileUploadModule.handleFileUpload(event)">
                                         <p id="kra-pin-certificate-message" class="file-message"></p>
                                     </div>
                                     <!-- ATM Card Upload -->
                                     <div class="file-upload-group">
                                         <label for="atm-card" class="upload-label">ATM Card</label>
-                                        <input type="file" accept="image/*,.pdf" id="atm-card" class="file-input" required onchange="FileUploadModule.handleFileUpload(event)">
+                                        <input type="file" accept="image/*,.pdf" id="atm-card" name="atm-card" class="file-input"  onchange="FileUploadModule.handleFileUpload(event)">
                                         <p id="atm-card-message" class="file-message"></p>
                                     </div>
 
@@ -580,9 +580,9 @@
                             </div>
                             <div class="form-group">
                                 <label>Do you want Personal Relief?</label>
-                                <input type="radio" name="personalRelief" id="personal-relief-yes" value="yes" required>
+                                <input type="radio" name="personalRelief" id="personal-relief-yes" value="yes" >
                                 <label for="personal-relief-yes">Yes</label>
-                                <input type="radio" name="personalRelief" id="personal-relief-no" value="no" required>
+                                <input type="radio" name="personalRelief" id="personal-relief-no" value="no" >
                                 <label for="personal-relief-no">No</label>
                             </div>
                             <div class="form-group">

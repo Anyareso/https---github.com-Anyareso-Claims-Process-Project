@@ -8,8 +8,10 @@ from models import FormSubmission
 app = Flask(__name__)
 
 # Database setup for SQL Server
-DATABASE_URI = 'mssql+pyodbc://@Merlin\\SQLEXPRESS/vc_test?driver=ODBC+Driver+18+for+SQL+Server;Trusted_Connection=yes;'
+SERVER = 'Merlin\SQLEXPRESS'
+DATABASE = 'vc_test'
 
+DATABASE_URI = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};Trusted_Connection=yes;Encrypt=no;TrustServerCertificate=yes'
 
 # Set up the engine and session
 engine = create_engine(DATABASE_URI)

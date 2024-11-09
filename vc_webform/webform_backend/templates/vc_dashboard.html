@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submissions Dashboard</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .table-responsive {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .img-thumbnail {
+            max-width: 100px;
+            height: auto;
+        }
+        .search-bar {
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+        .table-responsive {
+            margin-top: 20px; /* Adds space between filters and the table */
+        }
+    </style>
+    <script>
+        // Function to filter submissions by search input
+        function searchTable() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let table = document.getElementById('submissionsTable');
+            let rows = table.getElementsByTagName('tr');
+            for (let i = 1; i < rows.length; i++) {
+                let cells = rows[i].getElementsByTagName('td');
+                let match = false;
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().indexOf(input) > -1) {
+                        match = true;
+                        break;
+                    }
+                }
+                rows[i].style.display = match ? '' : 'none';
+            }
+        }
+
+        // Function to filter by date range and generate CSV report
+        function filterByDate() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const rows = document.querySelectorAll('#submissionsTable tbody tr');
+
+            rows.forEach(row => {
+                const dateCell = row.cells[2]; // Date column
+                const submissionDate = new Date(dateCell.textContent);
+
+                // Display or hide rows based on date range
+                if (submissionDate >= startDate && submissionDate <= endDate) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Function to export full submission details to CSV
+        function exportToCSV() {
+            const rows = document.querySelectorAll('#submissionsTable tbody tr');
+            const csvContent = ['Policy No.,Name,ID Number,Phone Number,Email,KRA Pin No.,Captured Image, ID Photo, KRA Pin Photo, ATM Card Photo, Personal Relief, Signature, Data Protection Consent, Date Submitted'];
+
+            rows.forEach(row => {
+                if (row.style.display !== 'none') { // Only include visible rows
+                    const cols = Array.from(row.cells);
+
+                    const policyNo = cols[0] ? cols[0].textContent.trim() : 'No Data';
+                    const name = cols[1] ? cols[1].textContent.trim() : 'No Data';
+                    const idNumber = cols[2] ? cols[2].textContent.trim() : 'No Data';
+                    const phoneNumber = cols[3] ? cols[3].textContent.trim() : 'No Data';
+                    const email = cols[4] ? cols[4].textContent.trim() : 'No Data';
+                    const kraPin = cols[5] ? cols[5].textContent.trim() : 'No Data';
+                    const capturedImage = cols[6] && cols[6].querySelector('img') ? cols[6].querySelector('img').src : 'No Image';
+                    const idPhoto = cols[7] ? cols[7].textContent.trim() : 'No Data';
+                    const kraPinPhoto = cols[8] ? cols[8].textContent.trim() : 'No Data';
+                    const atmCardPhoto = cols[9] ? cols[9].textContent.trim() : 'No Data';
+                    const personalRelief = cols[10] ? cols[10].textContent.trim() : 'No Data';
+                    const signature = cols[11] && cols[11].querySelector('img') ? cols[11].querySelector('img').src : 'No Signature';
+                    const dataProtectionConsent = cols[12] ? cols[12].textContent.trim() : 'No Data';
+                    const dateSubmitted = cols[13] ? cols[13].textContent.trim() : 'No Data';
+
+                    const rowData = [
+                        policyNo, name, idNumber, phoneNumber, email, kraPin, capturedImage, idPhoto, kraPinPhoto, atmCardPhoto, personalRelief, signature, 
+                        dataProtectionConsent, dateSubmitted
+                    ];
+
+                    csvContent.push(rowData.join(','));
+                }
+            });
+
+            // Create a timestamp for the filename
+            const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Removing special characters to make it valid for file names
+
+            // Convert array to CSV format
+            const csvData = csvContent.join('\n');
+            const blob = new Blob([csvData], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `full_submission_report_${timestamp}.csv`; // Add timestamp to filename
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+    </script>
+</head>
+
+<body>
+    <div class="container my-5">
+        <h2 class="mb-4">Submissions Dashboard</h2>
+
+        <!-- Search Input -->
+        <input type="text" id="searchInput" class="form-control search-bar" onkeyup="searchTable()" placeholder="Search for submissions...">
+
+        <!-- Date Filter Inputs -->
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate" class="form-control">
+            </div>
+            <div class="col-md-4 align-self-end">
+                <button onclick="filterByDate()" class="btn btn-primary mt-2">Filter by Date</button>
+                <button onclick="exportToCSV()" class="btn btn-success mt-2">Generate Report</button>
+            </div>
+        </div>
+
+        <!-- Submissions Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="submissionsTable">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Policy No.</th>
+                        <th>Name</th>
+                        <th>ID Number</th>
+                        <th>Email</th>
+                        <th>Documents</th>
+                        <th>Captured Image</th>
+                        <th>Signature</th>
+                        <th>Date submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Sample Data Row; Replace with actual backend-generated rows -->
+                    <tr>
+                        <td>ANN456</td>
+                        <td>John Doe</td>
+                        <td>12345678</td>
+                        <td>johndoe@example.com</td>
+                        <td><a href="#" class="btn btn-link" download>Download Document</a></td>
+                        <td><img src="https://via.placeholder.com/100" alt="Captured Image" class="img-thumbnail"></td>
+                        <td><img src="https://via.placeholder.com/100" alt="Signature" class="img-thumbnail"></td>
+                        <td>2024-11-07</td>
+                        <td>
+                            <!-- View Button links to individual submission page -->
+                            <a href="vc_submission_details.html?id=1" target="_blank"  class="btn btn-primary btn-sm">View</a>
+                            <!-- Delete Button -->
+                            <form action="#" method="POST" onsubmit="return confirm('Are you sure you want to delete this submission?');">
+                                <button type="submit" class="btn btn-danger btn-sm" style="margin-top: 15px;">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -35,7 +35,7 @@ except SQLAlchemyError as e:
     print(f"Error occurred while creating tables: {e}")
 
 # Configure the upload folder for file storage allowed file extensions
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['UPLOAD_FOLDER'] = '/vc_webform/webform_backend/uploads'
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf', 'docx', 'txt'}

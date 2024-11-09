@@ -895,6 +895,7 @@
                 }
             }
         };
+        // Webcam Module
         const WebcamModule = {
             videoElement: document.getElementById('video'),
             canvasElement: document.getElementById('canvas'),
@@ -928,6 +929,7 @@
             // Confirm the photo and save it to a hidden input field
             confirmPhoto() {
                 const dataURL = this.canvasElement.toDataURL('image/png'); // Convert canvas to data URL
+                console.log("Generated data URL:", dataURL);  // Log the generated base64 data URL
                 this.feedback.textContent = "Photo confirmed!";
                 
                 // Store the data URL in a hidden input field for form submission

@@ -1,4 +1,5 @@
 import os
+import base64
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -97,8 +98,9 @@ def submit_form():
         email_address = request.form['emailAddress']
         personal_relief = request.form['personalRelief'] == 'yes'
         data_protection_accepted = request.form['dataProtectionAccepted'] == 'true'
-        photo_data = request.form['photoData']
+        photo_data = request.form.get('photo')  # Get the photo data (base64 string)
         signature_data = request.form['signature']
+    
 
         # Print out the form data to verify it's being captured correctly
         print(f"Form data: {full_name}, {id_number}, {phone_number}, {email_address}, {photo_data}, {signature_data}")

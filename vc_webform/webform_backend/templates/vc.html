@@ -472,7 +472,7 @@
                     </ul>
                 </div>
                 <div class="main-content">
-                    <form id="multiStepForm">
+                    <form id="multiStepForm" method="POST">
                         <div class="form-step active" id="step1">
                             <h3>Step 1: Personal Information</h3>
                             <p>Enter your personal details here.</p>
@@ -531,6 +531,7 @@
                                 <button id="redo-btn" disabled>Redo</button>
                             </div>
                             <div id="feedback"></div>
+                            <input type="hidden" id="photoData" name="photoData" value="false"> 
                             <button type="button" class="skip-btn" data-skip="3">Skip</button>
                         </div>
                         <div class="form-step" id="step3">
@@ -919,6 +920,8 @@
             // Capture photo and display it on canvas
             capturePhoto() {
                 const context = this.canvasElement.getContext('2d');
+                this.canvasElement.width = 640;  // Resize width
+                this.canvasElement.height = 480; // Resize height
                 context.drawImage(this.videoElement, 0, 0, this.canvasElement.width, this.canvasElement.height);
                 this.captureBtn.disabled = true;  // Disable capture button
                 this.confirmBtn.disabled = false; // Enable confirm button
@@ -926,22 +929,20 @@
                 this.feedback.textContent = "Photo captured. Please confirm or redo.";
             },
 
-            // Confirm the photo and save it to a hidden input field
+            // Confirm the photo and send it as a POST request
             confirmPhoto() {
-                const dataURL = this.canvasElement.toDataURL('image/png'); // Convert canvas to data URL
+                const dataURL = this.canvasElement.toDataURL('image/png', 0.7); // Convert canvas to data URL with compression
                 console.log("Generated data URL:", dataURL);  // Log the generated base64 data URL
-                this.feedback.textContent = "Photo confirmed!";
-                
-                // Store the data URL in a hidden input field for form submission
-                let photoInput = document.getElementById('photoData');
-                if (!photoInput) {
-                    photoInput = document.createElement('input');
-                    photoInput.type = 'hidden';
-                    photoInput.id = 'photoData';
-                    photoInput.name = 'photoData';
-                    document.getElementById('multiStepForm').appendChild(photoInput);
+                this.feedback.textContent = "Photo confirmed! Ready to submit.";
+
+                // Set the data URL as the value of the hidden input field
+                const photoDataInput = document.getElementById('photoData');
+                if (photoDataInput) {
+                    photoDataInput.value = dataURL;
                 }
-                photoInput.value = dataURL;
+
+                // If you're ready to submit the form, you can call the submitForm function here
+                submitForm(dataURL); // Pass the photo data to the submitForm function
             },
 
             // Redo the photo
@@ -975,7 +976,6 @@
             WebcamModule.confirmBtn.addEventListener('click', () => WebcamModule.confirmPhoto());
             WebcamModule.redoBtn.addEventListener('click', () => WebcamModule.redoPhoto());
         });
-
 
         // Signature Module
         const SignatureModule = {
@@ -1173,7 +1173,7 @@
         };
 
         // Submit Data to Server
-        function submitForm() {
+        function submitForm(photoData = null) {
             const form = document.getElementById('multiStepForm');
             if (!form) {
                 console.error("Form element not found. Ensure the form has id='multiStepForm'.");
@@ -1183,8 +1183,13 @@
 
             if (Validation.validateStep(totalSteps)) {
                 try {
-                    const formData = new FormData(form); // Initialize FormData with the form
+                    const formData = new FormData(form);
                     formData.append('signature', signaturePad.toDataURL()); // Add the signature
+
+                    // If photo data is provided, append it to the form data
+                    if (photoData) {
+                        formData.append('photo', photoData); // Append the captured photo
+                    }
 
                     // Append file inputs to the form data
                     const fileInputs = form.querySelectorAll('input[type="file"]');
@@ -1224,7 +1229,15 @@
             }
         }
 
-
+        // Helper function to convert file to base64
+        function convertFileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
 
         // Event listeners
         nextBtn.addEventListener('click', () => {

@@ -1172,8 +1172,9 @@
             }
         };
 
+        // Submit Data to Server
         function submitForm() {
-            const form = document.getElementById('multiStepForm'); // Corrected form ID
+            const form = document.getElementById('multiStepForm');
             if (!form) {
                 console.error("Form element not found. Ensure the form has id='multiStepForm'.");
                 showFlashMessage('An error occurred. Form element not found.', 'error');
@@ -1182,9 +1183,10 @@
 
             if (Validation.validateStep(totalSteps)) {
                 try {
-                    const formData = new FormData(form); // Initialize FormData with the correct form
-                    formData.append('signature', signaturePad.toDataURL());
+                    const formData = new FormData(form); // Initialize FormData with the form
+                    formData.append('signature', signaturePad.toDataURL()); // Add the signature
 
+                    // Append file inputs to the form data
                     const fileInputs = form.querySelectorAll('input[type="file"]');
                     fileInputs.forEach(input => {
                         for (let i = 0; i < input.files.length; i++) {
@@ -1197,15 +1199,31 @@
                         console.log(`${key}: ${value}`);
                     }
 
-                    showFlashMessage('Form submitted successfully!', 'success');
-                    // Redirect the user after submitting the form
-                    window.location.href = '/thank-you';
+                    // Send the form data to the backend via POST
+                    fetch('/submit-form', {
+                        method: 'POST',
+                        body: formData,
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showFlashMessage('Form submitted successfully!', 'success');
+                            window.location.href = '/thank-you'; // Redirect after submission
+                        } else {
+                            showFlashMessage('An error occurred. Please try again.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error submitting form:', error);
+                        showFlashMessage('An error occurred while submitting the form. Please try again.', 'error');
+                    });
                 } catch (error) {
-                    console.error('Error submitting form:', error);
+                    console.error('Error in submitForm function:', error);
                     showFlashMessage('An error occurred while submitting the form. Please try again.', 'error');
                 }
             }
         }
+
 
 
         // Event listeners

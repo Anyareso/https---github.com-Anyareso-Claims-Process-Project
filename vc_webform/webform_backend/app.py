@@ -17,6 +17,8 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 # Configure upload folder and allowed file extensions
+# Configure the upload folder for file storage
+app.config['UPLOAD_FOLDER'] = 'uploads'
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf', 'docx', 'txt'}

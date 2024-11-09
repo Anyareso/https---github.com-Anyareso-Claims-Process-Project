@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width="device-width", initial-scale=1.0">
+    <meta name="viewport" content="" width="device-width", initial-scale="1.0">
     <title>Annuity Verification Certificate</title>
     
     <style>
@@ -342,6 +342,15 @@
         .file-message {
             color: #d9534f;
             font-size: 12px;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
         }
         .signature-box {
             border: 1px solid #ddd;
@@ -797,57 +806,64 @@
         styleSheet.type = "text/css";
         styleSheet.innerText = styles;
         document.head.appendChild(styleSheet);
+        
         // File Upload Module
         const FileUploadModule = {
             handleFileUpload(event) {
-                const files = event.target.files;
-                const fileList = document.getElementById('uploaded-files-list');
-                fileList.innerHTML = '';  // Clear previous file list
+                const fileInput = event.target;
+                const files = fileInput.files;
+                const messageElement = document.getElementById(`${fileInput.id}-message`);
+                messageElement.innerHTML = '';  // Clear previous message
+                messageElement.classList.remove('success', 'error'); // Clear previous styling
 
-                // Loop through each file and handle accordingly
+                // Loop through each selected file
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     if (this.isValidFile(file)) {
-                        const listItem = document.createElement('div');
-                        listItem.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-                        fileList.appendChild(listItem);
+                        messageElement.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB) - Uploaded successfully.`;
+                        messageElement.classList.add('success'); // Apply success styling
                         
-                        // Here, you can create an object to store the files individually
-                        this.addFile(file);
+                        // Optionally add the file to a storage object
+                        this.addFile(file, fileInput.id);
                     } else {
-                        showFlashMessage(`File ${file.name} is not allowed. Please upload only PDF or JPG files under 5MB.`, 'error');
+                        messageElement.textContent = `File ${file.name} is not allowed. Please upload only PDF or JPG files under 5MB.`;
+                        messageElement.classList.add('error'); // Apply error styling
                     }
                 }
             },
 
             isValidFile(file) {
-                // Check if the file type is allowed (PDF, JPG, PNG)
                 const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
                 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
                 return ALLOWED_FILE_TYPES.includes(file.type) && file.size <= MAX_FILE_SIZE;
             },
 
-            addFile(file) {
-                // This function can be used to store the file into a form data object or array for backend submission
-                // Here you can customize based on your backend requirements
+            addFile(file, fileType) {
                 if (!this.files) {
-                    this.files = {}; // Store the files in an object
+                    this.files = {}; // Initialize files object if not already done
                 }
 
-                if (file.name.toLowerCase().includes("id card front")) {
-                    this.files['idCardFront'] = file;
-                } else if (file.name.toLowerCase().includes("id card back")) {
-                    this.files['idCardBack'] = file;
-                } else if (file.name.toLowerCase().includes("kra pin")) {
-                    this.files['kraPinCertificate'] = file;
-                } else if (file.name.toLowerCase().includes("atm card")) {
-                    this.files['atmCard'] = file;
+                // Save each file based on the specific input type
+                switch (fileType) {
+                    case 'id-card-front':
+                        this.files['idCardFront'] = file;
+                        break;
+                    case 'id-card-back':
+                        this.files['idCardBack'] = file;
+                        break;
+                    case 'kra-pin-certificate':
+                        this.files['kraPinCertificate'] = file;
+                        break;
+                    case 'atm-card':
+                        this.files['atmCard'] = file;
+                        break;
+                    default:
+                        console.warn(`Unhandled file type: ${fileType}`);
                 }
             },
 
             validateFileUploads() {
-                // Ensure that all required files have been uploaded
                 const requiredFiles = ['idCardFront', 'idCardBack', 'kraPinCertificate', 'atmCard'];
                 
                 for (let fileKey of requiredFiles) {
@@ -860,7 +876,6 @@
             },
 
             getFileLabel(fileKey) {
-                // Get the label for each file type based on the key
                 switch (fileKey) {
                     case 'idCardFront':
                         return 'ID Card Front';

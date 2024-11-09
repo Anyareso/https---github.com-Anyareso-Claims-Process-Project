@@ -1,25 +1,39 @@
 import os
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename
 from models import FormSubmission
+from base import Base  # Import the base class from your base file
+
+import logging
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
 # Database setup for SQL Server
-SERVER = 'Merlin\SQLEXPRESS'
+SERVER = 'localhost\\SQLEXPRESS'  # Use localhost or IP address
 DATABASE = 'vc_test'
+DRIVER = 'ODBC Driver 18 for SQL Server'
 
-DATABASE_URI = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};Trusted_Connection=yes;Encrypt=no;TrustServerCertificate=yes'
+# Use this format for SQLAlchemy with pyodbc
+DATABASE_URI = 'mssql+pyodbc://localhost\\SQLEXPRESS/vc_test?driver=ODBC+Driver+18+for+SQL+Server&Trusted_Connection=yes&Encrypt=no&TrustServerCertificate=yes'
 
 # Set up the engine and session
 engine = create_engine(DATABASE_URI)
+print("Engine created successfully!")
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# Configure upload folder and allowed file extensions
-# Configure the upload folder for file storage
+# Create the table(s) if they do not exist
+try:
+    Base.metadata.create_all(engine)
+    print("Tables created successfully!")
+except SQLAlchemyError as e:
+    print(f"Error occurred while creating tables: {e}")
+
+# Configure the upload folder for file storage allowed file extensions
 app.config['UPLOAD_FOLDER'] = 'uploads'
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])

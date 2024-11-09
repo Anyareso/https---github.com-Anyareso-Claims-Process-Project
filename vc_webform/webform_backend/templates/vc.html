@@ -933,16 +933,21 @@
             confirmPhoto() {
                 const dataURL = this.canvasElement.toDataURL('image/png', 0.7); // Convert canvas to data URL with compression
                 console.log("Generated data URL:", dataURL);  // Log the generated base64 data URL
-                this.feedback.textContent = "Photo confirmed! Ready to submit.";
+                this.feedback.textContent = "Photo confirmed! Ready to proceed with the rest of the form.";
 
-                // Set the data URL as the value of the hidden input field
+                // Save the captured photo temporarily (using localStorage or a variable)
+                localStorage.setItem('savedPhoto', dataURL);  // Store in localStorage
+                // Or you can store it in a JavaScript object or variable if you prefer to keep it in memory
+                // this.savedPhoto = dataURL;
+
+                // Set the data URL as the value of the hidden input field (to keep it for later)
                 const photoDataInput = document.getElementById('photoData');
                 if (photoDataInput) {
                     photoDataInput.value = dataURL;
                 }
 
-                // If you're ready to submit the form, you can call the submitForm function here
-                submitForm(dataURL); // Pass the photo data to the submitForm function
+                // Disable the confirm button or show a success message
+                document.getElementById('confirm-btn').disabled = true;
             },
 
             // Redo the photo
@@ -1186,9 +1191,11 @@
                     const formData = new FormData(form);
                     formData.append('signature', signaturePad.toDataURL()); // Add the signature
 
-                    // If photo data is provided, append it to the form data
-                    if (photoData) {
-                        formData.append('photo', photoData); // Append the captured photo
+                    // Check if the photo is stored in localStorage or passed as an argument
+                    const storedPhoto = localStorage.getItem('savedPhoto');
+                    if (storedPhoto || photoData) {
+                        // Use the stored photo or the passed photoData
+                        formData.append('photo', storedPhoto || photoData); // Append the photo to the form data
                     }
 
                     // Append file inputs to the form data
@@ -1227,16 +1234,6 @@
                     showFlashMessage('An error occurred while submitting the form. Please try again.', 'error');
                 }
             }
-        }
-
-        // Helper function to convert file to base64
-        function convertFileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
         }
 
         // Event listeners
@@ -1281,10 +1278,7 @@
             }
         });
 
-        snapButton.addEventListener('click', () => WebcamModule.takeSnapshot());
-        redoButton.addEventListener('click', () => WebcamModule.redoPhoto());
-        confirmButton.addEventListener('click', () => WebcamModule.confirmPhoto());
-        fileInput.addEventListener('change', (event) => FileUploadModule.handleFileUpload(event));
+        // fileInput.addEventListener('change', (event) => FileUploadModule.handleFileUpload(event));
 
         // Initialize the form
         FormNavigation.updateButtons();

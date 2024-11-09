@@ -67,6 +67,7 @@ def save_base64_image(data, filename):
 def main_page():
     return render_template('vc.html')  # Serves the main page (vc.html)
 
+
 @app.route('/thank-you')
 def thank_you_page():
     return render_template('thank_you.html')  # Serves the thank-you page

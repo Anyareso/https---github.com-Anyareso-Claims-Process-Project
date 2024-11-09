@@ -1,15 +1,13 @@
 import pyodbc
 
-SERVER = 'Merlin\\SQLEXPRESS'
+SERVER = 'localhost\\SQLEXPRESS'  # Use localhost or IP address
 DATABASE = 'vc_test'
 DRIVER = 'ODBC Driver 18 for SQL Server'
-UID = 'USER-PC'   # Remove this line if using Trusted_Connection
-PWD = 'password'   # Remove this line if using Trusted_Connection
 
-# Connection string
+# Connection string with Windows Authentication
 connection_string = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};Trusted_Connection=yes;Encrypt=no;TrustServerCertificate=yes'
 
-conn = None  # Ensure conn is always defined
+conn = None
 
 try:
     conn = pyodbc.connect(connection_string)

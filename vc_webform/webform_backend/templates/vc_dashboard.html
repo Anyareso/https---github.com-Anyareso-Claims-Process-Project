@@ -161,9 +161,12 @@
                         <td>{{ submission.full_name }}</td>
                         <td>{{ submission.id_number }}</td>
                         <td>{{ submission.email_address }}</td>
-                        <td><a href="{{ submission.id_card_front }}" class="btn btn-link" download>Download Document</a></td>
-                        <td><img src="data:image/png;base64,{{ submission.photo_data }}" alt="Captured Image" class="img-thumbnail"></td>
-                        <td><img src="data:image/png;base64,{{ submission.signature_data }}" alt="Signature" class="img-thumbnail"></td>
+                        <td>
+                            <img src="{{ url_for('uploaded_file', filename=submission.photo_data) }}" alt="Captured Image" class="img-thumbnail">
+                        </td>
+                        <td>
+                            <img src="{{ url_for('uploaded_file', filename=submission.signature_data) }}" alt="Signature" class="img-thumbnail">
+                        </td>                                              
                         <td>{{ submission.created_at.strftime('%Y-%m-%d') }}</td>
                         <td>
                             <!-- View Button links to individual submission page -->

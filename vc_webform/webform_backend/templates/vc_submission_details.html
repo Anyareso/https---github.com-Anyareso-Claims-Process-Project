@@ -55,7 +55,7 @@
             <h4>Identity Verification</h4>
             <div>
                 <p>Selfie:</p>
-                <img src="data:image/png;base64,{{ submission.photo_data }}" alt="Selfie Image" class="selfie img-fluid">
+                <img src="{{ url_for('uploaded_file', filename=submission.photo_data) }}" alt="Selfie Image" class="selfie img-fluid">
             </div>
         </div>
 
@@ -76,7 +76,7 @@
             <div>
                 <p><strong>Personal Relief Selected:</strong>{{ 'Yes' if submission.personal_relief else 'No' }}</p>
                 <p>Signature:</p>
-                <img src="data:image/png;base64,{{ submission.signature_data }}" alt="Signature Image" class="signature img-fluid">
+                <img src="{{ url_for('uploaded_file', filename=submission.signature_data) }}" alt="Signature Image" class="signature img-fluid">
             </div>
             <div class="mt-3">
                 <p><strong>Data Protection Consent:</strong> {{ 'Yes' if submission.data_protection_accepted else 'No' }}</p>

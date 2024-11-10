@@ -1,6 +1,7 @@
 import os
 import base64
 from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory
+from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
@@ -56,12 +57,19 @@ def save_file(file):
 
 # Helper function to save base64 encoded image data
 def save_base64_image(data, filename):
+    # Decode the base64 image
     image_data = base64.b64decode(data.split(',')[1])  # Decode base64 data
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    
+    # Save the image to the defined folder
     with open(file_path, 'wb') as f:
         f.write(image_data)
+    
     logging.info(f"Image saved to {file_path}")
-    return file_path
+    
+    # Save only the relative path (without 'uploads/' prefix) to the database
+    relative_file_path = os.path.relpath(file_path, app.config['UPLOAD_FOLDER']).replace("\\", "/")
+    return relative_file_path
 
 @app.route('/')
 def main_page():
@@ -109,6 +117,7 @@ def submit_form():
         # Save base64 photo data
         photo_filename = f"{id_number}_photo.png"
         photo_file_path = save_base64_image(photo_data, photo_filename)
+
         # Save base64 signature data
         signature_filename = f"{id_number}_signature.png"
         signature_file_path = save_base64_image(signature_data, signature_filename)
@@ -178,7 +187,15 @@ def submission_details(submission_id):
 # Route to serve files from the uploads directory
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
+    # Safely join the base upload folder path with the filename
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    
+    if not os.path.exists(file_path):
+        logging.error(f"File not found: {file_path}")
+        abort(404)
+    
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

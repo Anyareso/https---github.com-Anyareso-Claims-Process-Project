@@ -160,7 +160,7 @@ def dashboard():
     try:
         # Query to fetch all submissions
         submissions = session.query(FormSubmission).all()
-        return render_template('dashboard.html', submissions=submissions)
+        return render_template('vc_dashboard.html', submissions=submissions)
     except Exception as e:
         return f"An error occurred: {e}"
 
@@ -171,7 +171,7 @@ def submission_details(submission_id):
         submission = session.query(FormSubmission).get(submission_id)
         if not submission:
             return "Submission not found", 404
-        return render_template('submission_details.html', submission=submission)
+        return render_template('vc_submission_details.html', submission=submission)
     except Exception as e:
         return f"An error occurred: {e}"
 

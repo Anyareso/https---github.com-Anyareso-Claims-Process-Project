@@ -154,25 +154,27 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Sample Data Row; Replace with actual backend-generated rows -->
+                    <!-- Actual backend-generated rows -->
                     <tr>
-                        <td>ANN456</td>
-                        <td>John Doe</td>
-                        <td>12345678</td>
-                        <td>johndoe@example.com</td>
-                        <td><a href="#" class="btn btn-link" download>Download Document</a></td>
-                        <td><img src="https://via.placeholder.com/100" alt="Captured Image" class="img-thumbnail"></td>
-                        <td><img src="https://via.placeholder.com/100" alt="Signature" class="img-thumbnail"></td>
-                        <td>2024-11-07</td>
+                        {% for submission in submissions %}
+                        <td>{{ submission.policy_no or 'N/A' }}</td>
+                        <td>{{ submission.full_name }}</td>
+                        <td>{{ submission.id_number }}</td>
+                        <td>{{ submission.email_address }}</td>
+                        <td><a href="{{ submission.id_card_front }}" class="btn btn-link" download>Download Document</a></td>
+                        <td><img src="data:image/png;base64,{{ submission.photo_data }}" alt="Captured Image" class="img-thumbnail"></td>
+                        <td><img src="data:image/png;base64,{{ submission.signature_data }}" alt="Signature" class="img-thumbnail"></td>
+                        <td>{{ submission.created_at.strftime('%Y-%m-%d') }}</td>
                         <td>
                             <!-- View Button links to individual submission page -->
-                            <a href="vc_submission_details.html?id=1" target="_blank"  class="btn btn-primary btn-sm">View</a>
+                            <a href="{{ url_for('submission_details', submission_id=submission.id) }}" target="_blank"  class="btn btn-primary btn-sm">View</a>
                             <!-- Delete Button -->
                             <form action="#" method="POST" onsubmit="return confirm('Are you sure you want to delete this submission?');">
                                 <button type="submit" class="btn btn-danger btn-sm" style="margin-top: 15px;">Delete</button>
                             </form>
                         </td>
                     </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>

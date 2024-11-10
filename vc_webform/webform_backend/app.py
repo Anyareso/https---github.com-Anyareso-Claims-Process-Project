@@ -1,6 +1,6 @@
 import os
 import base64
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
@@ -174,6 +174,11 @@ def submission_details(submission_id):
         return render_template('vc_submission_details.html', submission=submission)
     except Exception as e:
         return f"An error occurred: {e}"
+
+# Route to serve files from the uploads directory
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     app.run(debug=True)

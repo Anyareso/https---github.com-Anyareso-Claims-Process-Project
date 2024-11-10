@@ -1,13 +1,3 @@
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <ul>
-        {% for category, message in messages %}
-            <li class="alert alert-{{ category }}">{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-{% endwith %}
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -125,6 +115,15 @@
 </head>
 
 <body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul>
+            {% for category, message in messages %}
+                <li class="alert alert-{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
     <div class="container my-5">
         <h2 class="mb-4">Submissions Dashboard</h2>
 

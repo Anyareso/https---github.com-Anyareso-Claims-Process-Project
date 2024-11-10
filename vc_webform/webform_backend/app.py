@@ -154,5 +154,26 @@ def submit_form():
         logging.error(f"Error submitting form: {str(e)}")
         return jsonify({"message": f"Error submitting form: {str(e)}"}), 500
 
+# Route for the dashboard
+@app.route('/dashboard')
+def dashboard():
+    try:
+        # Query to fetch all submissions
+        submissions = session.query(FormSubmission).all()
+        return render_template('dashboard.html', submissions=submissions)
+    except Exception as e:
+        return f"An error occurred: {e}"
+
+# Route for individual submission details
+@app.route('/submission/<int:submission_id>')
+def submission_details(submission_id):
+    try:
+        submission = session.query(FormSubmission).get(submission_id)
+        if not submission:
+            return "Submission not found", 404
+        return render_template('submission_details.html', submission=submission)
+    except Exception as e:
+        return f"An error occurred: {e}"
+
 if __name__ == '__main__':
     app.run(debug=True)

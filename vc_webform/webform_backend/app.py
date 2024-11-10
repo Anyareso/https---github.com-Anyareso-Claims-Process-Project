@@ -13,6 +13,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
+app.secret_key = secrets.token_hex(16)  # Generates a random 32-character secret key
 
 # Database setup for SQL Server
 SERVER = 'localhost\\SQLEXPRESS'  # Use localhost or IP address

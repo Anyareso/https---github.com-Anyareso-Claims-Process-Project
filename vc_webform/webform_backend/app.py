@@ -1,6 +1,6 @@
 import os
 import base64
-from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory
+from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -195,6 +195,43 @@ def uploaded_file(filename):
         abort(404)
     
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+# Route to handle the deletion logic
+@app.route('/delete_submission/<int:submission_id>', methods=['POST'])
+def delete_submission(submission_id):
+    try:
+        # Find the submission by ID
+        submission = session.query(FormSubmission).get(submission_id)
+        
+        if submission:
+            # Delete the associated files from the file system if they exist
+            file_paths = [
+                submission.photo_data,
+                submission.signature_data,
+                submission.id_card_front,
+                submission.id_card_back,
+                submission.kra_pin_certificate,
+                submission.atm_card
+            ]
+            
+            for file_path in file_paths:
+                if file_path:
+                    try:
+                        os.remove(file_path)  # Delete each file if it exists
+                    except FileNotFoundError:
+                        pass  # Handle the case where the file might not exist
+            
+            # Delete the submission record from the database
+            session.delete(submission)
+            session.commit()
+            
+            flash('Submission deleted successfully!', 'success')  # Flash message for confirmation
+        else:
+            flash('Submission not found!', 'danger')  # Flash message for error
+    except Exception as e:
+        flash(f"An error occurred: {e}", 'danger')  # Flash message for general errors
+    
+    return redirect(url_for('dashboard'))  # Redirect to dashboard after deletion
 
 
 if __name__ == '__main__':

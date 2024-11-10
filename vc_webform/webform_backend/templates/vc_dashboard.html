@@ -1,3 +1,13 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul>
+        {% for category, message in messages %}
+            <li class="alert alert-{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -161,6 +171,7 @@
                         <td>{{ submission.full_name }}</td>
                         <td>{{ submission.id_number }}</td>
                         <td>{{ submission.email_address }}</td>
+                        <td><a href="{{ submission.id_card_front }}" download>Download Document</a></td>
                         <td>
                             <img src="{{ url_for('uploaded_file', filename=submission.photo_data) }}" alt="Captured Image" class="img-thumbnail">
                         </td>
@@ -172,7 +183,7 @@
                             <!-- View Button links to individual submission page -->
                             <a href="{{ url_for('submission_details', submission_id=submission.id) }}" target="_blank"  class="btn btn-primary btn-sm">View</a>
                             <!-- Delete Button -->
-                            <form action="#" method="POST" onsubmit="return confirm('Are you sure you want to delete this submission?');">
+                            <form action="{{ url_for('delete_submission', submission_id=submission.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this submission?');">
                                 <button type="submit" class="btn btn-danger btn-sm" style="margin-top: 15px;">Delete</button>
                             </form>
                         </td>

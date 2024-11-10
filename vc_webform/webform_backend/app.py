@@ -1,12 +1,15 @@
 import os
 import base64
 import secrets
-from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash
+import csv
+from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename
+from io import BytesIO
+from datetime import datetime
 from models import FormSubmission
 from base import Base  # Import the base class from your base file
 
@@ -235,6 +238,112 @@ def delete_submission(submission_id):
     
     return redirect(url_for('dashboard'))  # Redirect to dashboard after deletion
 
+# Route to generate CSV reports
+@app.route('/export_csv', methods=['GET'])
+def export_csv():
+    try:
+        # Get the start and end date from the request parameters
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+
+        # Convert the date strings to datetime objects
+        start_date = datetime.strptime(start_date, '%Y-%m-%d') if start_date else None
+        end_date = datetime.strptime(end_date, '%Y-%m-%d') if end_date else None
+
+        # Validation: Ensure start_date is not later than end_date
+        if start_date and end_date and start_date > end_date:
+            flash('Please select both start and end dates.','danger')
+            return redirect(request.referrer)  # Redirect to the same page or dashboard
+
+        # Query the FormSubmission table with date filters
+        query = session.query(FormSubmission)
+
+        # Apply date filters if provided
+        if start_date:
+            query = query.filter(FormSubmission.created_at >= start_date)
+        if end_date:
+            query = query.filter(FormSubmission.created_at <= end_date)
+
+        # Fetch the filtered submissions
+        submissions = query.all()
+
+        # If no records found, send an empty CSV with headers
+        if not submissions:
+            flash("No records found for the selected date range.","warning")
+            # Create an empty CSV with just headers
+            output = BytesIO()
+            csv_writer = csv.writer(output)
+            csv_writer.writerow([
+                'Policy No.', 'Name', 'ID Number', 'Phone Number', 'Email', 'KRA Pin No.',
+                'Captured Image', 'ID Photo', 'KRA Pin Photo', 'ATM Card Photo', 'Personal Relief',
+                'Signature', 'Data Protection Consent', 'Date Submitted'
+            ])
+            output.seek(0)
+            return send_file(output, mimetype='text/csv', as_attachment=True, download_name=f'form_submissions_empty_{datetime.now().strftime("%Y%m%d%H%M%S")}.csv')
+
+        # Create a CSV in memory using StringIO first, then convert to bytes
+        from io import StringIO
+        output_str = StringIO()
+        csv_writer = csv.writer(output_str)
+        csv_writer.writerow([
+            'Policy No.', 'Name', 'ID Number', 'Phone Number', 'Email', 'KRA Pin No.',
+            'Captured Image', 'ID Photo', 'KRA Pin Photo', 'ATM Card Photo', 'Personal Relief',
+            'Signature', 'Data Protection Consent', 'Date Submitted'
+        ])
+
+        # Write each submission row to the CSV
+        for submission in submissions:
+            csv_writer.writerow([
+                submission.id_number,
+                submission.full_name,
+                submission.id_number,
+                submission.phone_number,
+                submission.email_address,
+                submission.kra_pin,
+                submission.photo_data,  # Base64 or URL of the photo
+                submission.id_card_front,
+                submission.kra_pin_certificate,
+                submission.atm_card,
+                submission.personal_relief,
+                submission.signature_data,  # Base64 or URL of the signature
+                submission.data_protection_accepted,
+                submission.created_at.strftime('%Y-%m-%d %H:%M:%S')  # Date submitted
+            ])
+
+        # Convert the StringIO content to bytes
+        output_bytes = BytesIO(output_str.getvalue().encode('utf-8'))
+        output_bytes.seek(0)
+
+        # Send the CSV file as a response and add a timestamp to the filename for uniqueness
+        return send_file(output_bytes, mimetype='text/csv', as_attachment=True, download_name=f'form_submissions_{datetime.now().strftime("%Y%m%d%H%M%S")}.csv')
+
+    except Exception as e:
+        # Log the error and provide a user-friendly message
+        flash(f"An error occurred while exporting: {str(e)}", "error")
+        return redirect(request.referrer)  # Redirect back to the page where the export was triggered
+
+# Route to handle flash messages
+@app.route('/trigger_flash_message', methods=['POST'])
+def trigger_flash_message():
+    try:
+        # Get the JSON data from the request
+        data = request.get_json()
+        
+        # Extract the message and category
+        message = data.get('message')
+        category = data.get('category')
+        
+        # Validate if the message and category are provided
+        if not message or not category:
+            return jsonify({"error": "Both message and category are required"}), 400
+        
+        # Flash the message with the appropriate category
+        flash(message,category)
+        
+        return jsonify({"status": "success"}), 200  # Respond with success
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500  # Handle any other errors
 
 if __name__ == '__main__':
     app.run(debug=True)

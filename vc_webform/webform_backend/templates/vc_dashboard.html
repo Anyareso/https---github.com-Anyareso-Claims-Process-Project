@@ -25,6 +25,17 @@
         .table-responsive {
             margin-top: 20px; /* Adds space between filters and the table */
         }
+        .alert {
+            transition: opacity 0.3s ease-out;
+        }
+
+        .alert.fade {
+            opacity: 0;
+        }
+
+        .alert.show {
+            opacity: 1;
+        }
     </style>
     <script>
         // Function to filter submissions by search input
@@ -45,18 +56,36 @@
             }
         }
 
-        // Function to filter by date range and generate CSV report
+        // Function to filter by date range
         function filterByDate() {
-            const startDate = new Date(document.getElementById('startDate').value);
-            const endDate = new Date(document.getElementById('endDate').value);
-            const rows = document.querySelectorAll('#submissionsTable tbody tr');
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
 
+            // Ensure both start and end dates are selected
+            if (!startDate || !endDate) {
+                // Trigger the flash message for missing dates
+                flashMessage('Please select both start and end dates.', 'danger');
+                return;
+            }
+
+            // Convert to Date objects for comparison
+            const startDateObj = new Date(startDate);
+            const endDateObj = new Date(endDate);
+
+            // Ensure start date is not later than end date
+            if (startDateObj > endDateObj) {
+                // Trigger the flash message for invalid date range
+                flashMessage('Start date cannot be later than the end date.', 'danger');
+                return;
+            }
+
+            const rows = document.querySelectorAll('#submissionsTable tbody tr');
             rows.forEach(row => {
-                const dateCell = row.cells[2]; // Date column
+                const dateCell = row.cells[7]; // Assuming the date is in the 8th column (index 7)
                 const submissionDate = new Date(dateCell.textContent);
 
                 // Display or hide rows based on date range
-                if (submissionDate >= startDate && submissionDate <= endDate) {
+                if (submissionDate >= startDateObj && submissionDate <= endDateObj) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -64,66 +93,64 @@
             });
         }
 
-        // Function to export full submission details to CSV
-        function exportToCSV() {
-            const rows = document.querySelectorAll('#submissionsTable tbody tr');
-            const csvContent = ['Policy No.,Name,ID Number,Phone Number,Email,KRA Pin No.,Captured Image, ID Photo, KRA Pin Photo, ATM Card Photo, Personal Relief, Signature, Data Protection Consent, Date Submitted'];
-
-            rows.forEach(row => {
-                if (row.style.display !== 'none') { // Only include visible rows
-                    const cols = Array.from(row.cells);
-
-                    const policyNo = cols[0] ? cols[0].textContent.trim() : 'No Data';
-                    const name = cols[1] ? cols[1].textContent.trim() : 'No Data';
-                    const idNumber = cols[2] ? cols[2].textContent.trim() : 'No Data';
-                    const phoneNumber = cols[3] ? cols[3].textContent.trim() : 'No Data';
-                    const email = cols[4] ? cols[4].textContent.trim() : 'No Data';
-                    const kraPin = cols[5] ? cols[5].textContent.trim() : 'No Data';
-                    const capturedImage = cols[6] && cols[6].querySelector('img') ? cols[6].querySelector('img').src : 'No Image';
-                    const idPhoto = cols[7] ? cols[7].textContent.trim() : 'No Data';
-                    const kraPinPhoto = cols[8] ? cols[8].textContent.trim() : 'No Data';
-                    const atmCardPhoto = cols[9] ? cols[9].textContent.trim() : 'No Data';
-                    const personalRelief = cols[10] ? cols[10].textContent.trim() : 'No Data';
-                    const signature = cols[11] && cols[11].querySelector('img') ? cols[11].querySelector('img').src : 'No Signature';
-                    const dataProtectionConsent = cols[12] ? cols[12].textContent.trim() : 'No Data';
-                    const dateSubmitted = cols[13] ? cols[13].textContent.trim() : 'No Data';
-
-                    const rowData = [
-                        policyNo, name, idNumber, phoneNumber, email, kraPin, capturedImage, idPhoto, kraPinPhoto, atmCardPhoto, personalRelief, signature, 
-                        dataProtectionConsent, dateSubmitted
-                    ];
-
-                    csvContent.push(rowData.join(','));
-                }
+        // Helper function to trigger flash messages in the backend
+        function flashMessage(message, category) {
+            // Send the flash message to the backend through a request
+            fetch('/trigger_flash_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: message,   // Dynamic message
+                    category: category  // Dynamic category (e.g., "danger", "success")
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                location.reload();  // Reloads the page to show the flash message
+            })
+            .catch(error => {
+                console.error('Error sending flash message:', error);
             });
-
-            // Create a timestamp for the filename
-            const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Removing special characters to make it valid for file names
-
-            // Convert array to CSV format
-            const csvData = csvContent.join('\n');
-            const blob = new Blob([csvData], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `full_submission_report_${timestamp}.csv`; // Add timestamp to filename
-            link.click();
-            URL.revokeObjectURL(url);
         }
 
+
+        // Function to export full submission details to CSV
+        function exportToCSV() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            // Construct the URL with the date range parameters
+            const url = `/export_csv?start_date=${startDate}&end_date=${endDate}`;
+
+            // Redirect to the backend endpoint to trigger the download
+            window.location.href = url;
+        }
+        // Automatically hide flash messages after 5 seconds
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const flashMessages = document.querySelectorAll('.alert');
+            flashMessages.forEach((flashMessage) => {
+                setTimeout(() => {
+                    flashMessage.classList.remove('show');
+                    flashMessage.classList.add('fade');
+                }, 3000);  // 5000 milliseconds (3 seconds)
+            });
+        });
     </script>
 </head>
 
 <body>
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <ul>
             {% for category, message in messages %}
-                <li class="alert alert-{{ category }}">{{ message }}</li>
+                <div class="alert alert-{{ category }} fade show" role="alert" id="flash-message">
+                    {{ message }}
+                </div>
             {% endfor %}
-            </ul>
         {% endif %}
     {% endwith %}
+
     <div class="container my-5">
         <h2 class="mb-4">Submissions Dashboard</h2>
 

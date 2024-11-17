@@ -2,7 +2,7 @@ import os
 import base64
 import secrets
 import csv
-from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file
+from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file, session
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -11,6 +11,7 @@ from werkzeug.utils import secure_filename
 from io import BytesIO
 from datetime import datetime
 from models import FormSubmission
+from models import User
 from base import Base  # Import the base class from your base file
 
 import logging
@@ -89,9 +90,39 @@ def thank_you_page():
 def login():
     return render_template('login.html')  # Serves the login page
 
-@app.route('/register')
-def register():
-    return render_template('register.html')  # Serves the registration page
+@app.route('/register', methods=['GET', 'POST'])
+def register_user():
+    if request.method == 'POST':
+        # Get data from the form
+        firstname = request.form.get('firstname')
+        lastname = request.form.get('lastname')
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        # Check if the email already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('Email already registered. Please log in.', 'danger')
+            return redirect(url_for('register_user'))  # Redirect back to registration page
+
+        # Create a new user
+        new_user = User(
+            firstname=firstname,
+            lastname=lastname,
+            email=email
+        )
+        new_user.set_password(password)
+
+        # Add user to the database
+        session.add(new_user)
+        session.commit()
+
+        flash('Registration successful! Please log in.', 'success')
+        return redirect(url_for('login'))  # Redirect to login after successful registration
+
+    # Handle GET request to serve the registration page
+    return render_template('register.html')
+
 
 @app.route('/forgot-password')
 def forgot_password():

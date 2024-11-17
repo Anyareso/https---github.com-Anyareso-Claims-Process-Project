@@ -86,15 +86,15 @@ def thank_you_page():
     return render_template('thank_you.html')  # Serves the thank-you page
 
 @app.route('/login')
-def thank_you_page():
+def login():
     return render_template('login.html')  # Serves the login page
 
 @app.route('/register')
-def thank_you_page():
+def register():
     return render_template('register.html')  # Serves the registration page
 
 @app.route('/forgot-password')
-def thank_you_page():
+def forgot_password():
     return render_template('forgot_password.html')  # Serves the forgot_password page
 
 @app.route('/submit-form', methods=['POST'])

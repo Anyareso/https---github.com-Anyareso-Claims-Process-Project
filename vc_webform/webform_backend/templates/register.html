@@ -79,6 +79,17 @@
                 <div id="radius-shape-2" class="position-absolute shadow-5-strong"></div>
         
                 <div class="card bg-glass">
+                    <!-- To handle flash messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}" role="alert">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
                     <div class="card-body px-4 py-5 px-md-5">
                     <form>
                         <!-- 2 column grid layout with text inputs for the first and last names -->

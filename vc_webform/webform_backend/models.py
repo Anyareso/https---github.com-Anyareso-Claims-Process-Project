@@ -35,13 +35,13 @@ class FormSubmission(Base):
 class User(Base):
     __tablename__ = 'users'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    firstname = db.Column(db.String(50), nullable=False)
-    lastname = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-    access_level = db.Column(db.String(20), nullable=True)  # Access level can be NULL
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    firstname = Column(String(50), nullable=False)
+    lastname = Column(String(50), nullable=False)
+    email = Column(String(120), unique=True, nullable=False)
+    password_hash = Column(String(128), nullable=False)
+    access_level = Column(String(20), nullable=True)  # Access level can be NULL
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     def set_password(self, password):
         """Hashes the password for storage."""
@@ -52,4 +52,4 @@ class User(Base):
         return check_password_hash(self.password_hash, password)
 
     def __repr__(self):
-        return f"<User {self.email}>"
+        return f"<User(email={self.email})>"

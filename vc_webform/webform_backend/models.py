@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from werkzeug.security import generate_password_hash, check_password_hash
 from base import Base  # Ensure this imports from your base class (declarative_base)
 
 class FormSubmission(Base):
@@ -28,3 +29,27 @@ class FormSubmission(Base):
 
     def __repr__(self):
         return f"<FormSubmission(id={self.id}, full_name={self.full_name})>"
+
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    firstname = db.Column(db.String(50), nullable=False)
+    lastname = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    access_level = db.Column(db.String(20), nullable=True)  # Access level can be NULL
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def set_password(self, password):
+        """Hashes the password for storage."""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        """Checks the password against the stored hash."""
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f"<User {self.email}>"

@@ -2,14 +2,15 @@ import os
 import base64
 import secrets
 import csv
-from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file, session
+import sentry_sdk
+from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file, g, session
 from pathlib import Path
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import FormSubmission
 from models import User
 from base import Base  # Import the base class from your base file
@@ -17,8 +18,23 @@ from base import Base  # Import the base class from your base file
 import logging
 logging.basicConfig(level=logging.INFO)
 
+sentry_sdk.init(
+    dsn="https://7c0e9de1b2cbed0e86d02472115b5727@o4508312518328320.ingest.de.sentry.io/4508312522260560",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    _experiments={
+        # Set continuous_profiling_auto_start to True
+        # to automatically start the profiler on when
+        # possible.
+        "continuous_profiling_auto_start": True,
+    },
+)
+
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)  # Generates a random 32-character secret key
+# Session timeout duration (e.g., 30 minutes)
+SESSION_TIMEOUT = timedelta(minutes=30)
 
 # Database setup for SQL Server
 SERVER = 'localhost\\SQLEXPRESS'  # Use localhost or IP address
@@ -31,8 +47,7 @@ DATABASE_URI = 'mssql+pyodbc://localhost\\SQLEXPRESS/vc_test?driver=ODBC+Driver+
 # Set up the engine and session
 engine = create_engine(DATABASE_URI)
 print("Engine created successfully!")
-Session = sessionmaker(bind=engine)
-session = Session()
+Session = scoped_session(sessionmaker(bind=engine))
 
 # Create the table(s) if they do not exist
 try:
@@ -81,7 +96,6 @@ def save_base64_image(data, filename):
 def main_page():
     return render_template('vc.html')  # Serves the main page (vc.html)
 
-
 @app.route('/thank-you')
 def thank_you_page():
     return render_template('thank_you.html')  # Serves the thank-you page
@@ -111,8 +125,15 @@ def login():
         # Invalid credentials
         return jsonify({'message': 'Invalid email or password.'}), 401
 
+@app.route('/logout')
+def logout():
+    # Clear session and redirect to login page
+    session.clear()
+    return redirect(url_for('login'))
+
 @app.route('/register', methods=['GET', 'POST'])
-def register_user():
+def register():
+
     if request.method == 'POST':
         # Get data from the form
         firstname = request.form.get('firstname')
@@ -143,7 +164,6 @@ def register_user():
 
     # Handle GET request to serve the registration page
     return render_template('register.html')
-
 
 @app.route('/forgot-password')
 def forgot_password():
@@ -239,7 +259,7 @@ def dashboard():
         # Protect the dashboard route
         if 'user_id' not in session:
             return redirect(url_for('login'))
-            
+
         # Query to fetch all submissions
         submissions = session.query(FormSubmission).all()
         return render_template('vc_dashboard.html', submissions=submissions)

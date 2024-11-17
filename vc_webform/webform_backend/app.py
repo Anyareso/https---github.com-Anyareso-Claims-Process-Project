@@ -86,9 +86,30 @@ def main_page():
 def thank_you_page():
     return render_template('thank_you.html')  # Serves the thank-you page
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('login.html')  # Serves the login page
+    if request.method == 'GET':
+        # Serve the login page
+        return render_template('login.html')
+
+    if request.method == 'POST':
+        # Process the login form submission
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        # Check if user exists in the database
+        user = User.query.filter_by(email=email).first()
+
+        if user and user.check_password(password):
+            # Store user details in session
+            session['user_id'] = user.id
+            session['user_email'] = user.email
+            session['user_firstname'] = user.firstname
+
+            return jsonify({'message': 'Login successful!', 'redirect_url': url_for('dashboard')}), 200
+
+        # Invalid credentials
+        return jsonify({'message': 'Invalid email or password.'}), 401
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_user():
@@ -215,6 +236,10 @@ def submit_form():
 @app.route('/dashboard')
 def dashboard():
     try:
+        # Protect the dashboard route
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+            
         # Query to fetch all submissions
         submissions = session.query(FormSubmission).all()
         return render_template('vc_dashboard.html', submissions=submissions)

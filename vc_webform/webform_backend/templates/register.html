@@ -79,80 +79,69 @@
                 <div id="radius-shape-2" class="position-absolute shadow-5-strong"></div>
         
                 <div class="card bg-glass">
-                    <!-- To handle flash messages -->
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }}" role="alert">
-                                    {{ message }}
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-
                     <div class="card-body px-4 py-5 px-md-5">
-                    <form action="/register" method="POST">
-                        <!-- 2 column grid layout with text inputs for the first and last names -->
-                        <div class="row">
-                        <div class="col-md-6 mb-4">
-                            <div data-mdb-input-init class="form-outline">
-                            <input type="text" id="fistname" class="form-control" />
-                            <label class="form-label" for="firstname">First name</label>
+                        <form id="registerForm" action="/register" method="POST">
+                            <!-- 2 column grid layout with text inputs for the first and last names -->
+                            <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div data-mdb-input-init class="form-outline">
+                                <input type="text" id="fistname" class="form-control" />
+                                <label class="form-label" for="firstname">First name</label>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div data-mdb-input-init class="form-outline">
-                            <input type="text" id="lastname" class="form-control" />
-                            <label class="form-label" for="lastname">Last name</label>
+                            <div class="col-md-6 mb-4">
+                                <div data-mdb-input-init class="form-outline">
+                                <input type="text" id="lastname" class="form-control" />
+                                <label class="form-label" for="lastname">Last name</label>
+                                </div>
                             </div>
-                        </div>
-                        </div>
-        
-                        <!-- Email input -->
-                        <div data-mdb-input-init class="form-outline mb-4">
-                        <input type="email" id="email" class="form-control" />
-                        <label class="form-label" for="email">Email address</label>
-                        </div>
-        
-                        <!-- Password input -->
-                        <div data-mdb-input-init class="form-outline mb-4">
-                        <input type="password" id="password" class="form-control" />
-                        <label class="form-label" for="password">Password</label>
-                        </div>
-        
-                        <!-- Checkbox -->
-                        <div class="form-check d-flex justify-content-center mb-4">
-                        <input class="form-check-input me-2" type="checkbox" value="" id="newsletter" checked />
-                        <label class="form-check-label" for="newsletter">
-                            Subscribe to our newsletter
-                        </label>
-                        </div>
-        
-                        <!-- Submit button -->
-                        <button type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-4">
-                        Sign up
-                        </button>
-        
-                        <!-- Register buttons -->
-                        <div class="text-center">
-                        <p>or <a href="{{ url_for('login') }}">sign up</a> with:</p>
-                        <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
-                            <i class="fab fa-facebook-f"></i>
-                        </button>
-        
-                        <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
-                            <i class="fab fa-google"></i>
-                        </button>
-        
-                        <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
-                            <i class="fab fa-twitter"></i>
-                        </button>
-        
-                        <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
-                            <i class="fab fa-github"></i>
-                        </button>
-                        </div>
-                    </form>
+                            </div>
+            
+                            <!-- Email input -->
+                            <div data-mdb-input-init class="form-outline mb-4">
+                            <input type="email" id="email" class="form-control" />
+                            <label class="form-label" for="email">Email address</label>
+                            </div>
+            
+                            <!-- Password input -->
+                            <div data-mdb-input-init class="form-outline mb-4">
+                            <input type="password" id="password" class="form-control" />
+                            <label class="form-label" for="password">Password</label>
+                            </div>
+            
+                            <!-- Checkbox -->
+                            <div class="form-check d-flex justify-content-center mb-4">
+                            <input class="form-check-input me-2" type="checkbox" value="" id="newsletter" checked />
+                            <label class="form-check-label" for="newsletter">
+                                Subscribe to our newsletter
+                            </label>
+                            </div>
+            
+                            <!-- Submit button -->
+                            <button type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-4">
+                            Sign up
+                            </button>
+            
+                            <!-- Register buttons -->
+                            <div class="text-center">
+                            <p>or <a href="{{ url_for('login') }}">sign up</a> with:</p>
+                            <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
+                                <i class="fab fa-facebook-f"></i>
+                            </button>
+            
+                            <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
+                                <i class="fab fa-google"></i>
+                            </button>
+            
+                            <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
+                                <i class="fab fa-twitter"></i>
+                            </button>
+            
+                            <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
+                                <i class="fab fa-github"></i>
+                            </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 </div>

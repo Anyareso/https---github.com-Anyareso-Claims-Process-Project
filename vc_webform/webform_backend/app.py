@@ -33,8 +33,8 @@ sentry_sdk.init(
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)  # Generates a random 32-character secret key
-# Session timeout duration (e.g., 30 minutes)
-SESSION_TIMEOUT = timedelta(minutes=30)
+# # Session timeout duration (e.g., 30 minutes)
+# SESSION_TIMEOUT = timedelta(minutes=30)
 
 # Database setup for SQL Server
 SERVER = 'localhost\\SQLEXPRESS'  # Use localhost or IP address
@@ -46,8 +46,8 @@ DATABASE_URI = 'mssql+pyodbc://localhost\\SQLEXPRESS/vc_test?driver=ODBC+Driver+
 
 # Set up the engine and session
 engine = create_engine(DATABASE_URI)
-print("Engine created successfully!")
-Session = scoped_session(sessionmaker(bind=engine))
+Session = sessionmaker(bind=engine)
+session = Session()
 
 # Create the table(s) if they do not exist
 try:
@@ -102,66 +102,16 @@ def thank_you_page():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'GET':
-        # Serve the login page
         return render_template('login.html')
 
-    if request.method == 'POST':
-        # Process the login form submission
-        email = request.form.get('email')
-        password = request.form.get('password')
-
-        # Check if user exists in the database
-        user = User.query.filter_by(email=email).first()
-
-        if user and user.check_password(password):
-            # Store user details in session
-            session['user_id'] = user.id
-            session['user_email'] = user.email
-            session['user_firstname'] = user.firstname
-
-            return jsonify({'message': 'Login successful!', 'redirect_url': url_for('dashboard')}), 200
-
-        # Invalid credentials
-        return jsonify({'message': 'Invalid email or password.'}), 401
-
-@app.route('/logout')
-def logout():
-    # Clear session and redirect to login page
-    session.clear()
-    return redirect(url_for('login'))
+# @app.route('/logout')
+# def logout():
+#     # Clear session and redirect to login page
+#     session.clear()
+#     return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-
-    if request.method == 'POST':
-        # Get data from the form
-        firstname = request.form.get('firstname')
-        lastname = request.form.get('lastname')
-        email = request.form.get('email')
-        password = request.form.get('password')
-
-        # Check if the email already exists
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            flash('Email already registered. Please log in.', 'danger')
-            return redirect(url_for('register_user'))  # Redirect back to registration page
-
-        # Create a new user
-        new_user = User(
-            firstname=firstname,
-            lastname=lastname,
-            email=email
-        )
-        new_user.set_password(password)
-
-        # Add user to the database
-        session.add(new_user)
-        session.commit()
-
-        flash('Registration successful! Please log in.', 'success')
-        return redirect(url_for('login'))  # Redirect to login after successful registration
-
     # Handle GET request to serve the registration page
     return render_template('register.html')
 
@@ -256,10 +206,6 @@ def submit_form():
 @app.route('/dashboard')
 def dashboard():
     try:
-        # Protect the dashboard route
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
-
         # Query to fetch all submissions
         submissions = session.query(FormSubmission).all()
         return render_template('vc_dashboard.html', submissions=submissions)

@@ -3,7 +3,8 @@ import base64
 import secrets
 import csv
 import sentry_sdk
-from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file, g, session
+from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file, session
+from flask_session import Session
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -34,7 +35,9 @@ sentry_sdk.init(
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)  # Generates a random 32-character secret key
 # # Session timeout duration (e.g., 30 minutes)
-# SESSION_TIMEOUT = timedelta(minutes=30)
+app.config['SESSION_TYPE'] = 'filesystem'  # Or another session type like 'redis', etc.
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
+flask_session = Session(app)
 
 # Database setup for SQL Server
 SERVER = 'localhost\\SQLEXPRESS'  # Use localhost or IP address
@@ -104,11 +107,11 @@ def thank_you_page():
 def login():
         return render_template('login.html')
 
-# @app.route('/logout')
-# def logout():
-#     # Clear session and redirect to login page
-#     session.clear()
-#     return redirect(url_for('login'))
+@app.route('/logout')
+def logout():
+    # Clear session and redirect to login page
+    session.clear()
+    return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

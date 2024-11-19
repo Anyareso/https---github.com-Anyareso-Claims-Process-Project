@@ -105,7 +105,57 @@ def thank_you_page():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'GET':
         return render_template('login.html')
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+            email = data.get('email')
+            password = data.get('password')
+            remember_me = data.get('rememberMe')
+
+            # Database operations using db_session
+            with Session(engine) as db_session:
+                user = db_session.query(User).filter_by(email=email).first()
+                
+                if not user:
+                    return jsonify({
+                        'success': False, 
+                        'message': 'Invalid email or password'
+                    }), 401
+
+                if not check_password_hash(user.password, password):
+                    return jsonify({
+                        'success': False, 
+                        'message': 'Invalid email or password'
+                    }), 401
+
+                # Flask session management for cookies
+                session['user_id'] = user.id
+                session['email'] = user.email
+                
+                if remember_me:
+                    session.permanent = True
+                    # Optional: Set custom lifetime
+                    # app.permanent_session_lifetime = timedelta(days=30)
+
+                # Flash message for success
+                flash('Login successful!', 'success')
+                    
+                return jsonify({
+                    'success': True, 
+                    'message': 'Login successful'
+                })
+
+        except Exception as e:
+            print(f"Login error: {str(e)}")
+            # Flash message for error
+            flash('An error occurred during login', 'error')
+            return jsonify({
+                'success': False, 
+                'message': 'An error occurred during login'
+            }), 500
 
 @app.route('/logout')
 def logout():

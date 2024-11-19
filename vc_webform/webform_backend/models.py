@@ -56,3 +56,16 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(email={self.email})>"
+
+
+# Optional: Create a LoginAttempt model for tracking
+class LoginAttempt(Base):
+    __tablename__ = 'login_attempts'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    email = Column(String(120), nullable=False)
+    ip_address = Column(String(45), nullable=False)
+    user_agent = Column(String(256), nullable=True)
+    success = Column(Boolean, default=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)

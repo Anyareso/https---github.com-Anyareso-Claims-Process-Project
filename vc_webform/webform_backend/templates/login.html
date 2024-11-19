@@ -144,5 +144,77 @@
 
     <!-- MDB JS -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const submitButton = loginForm.querySelector('button[type="submit"]');
+            
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Disable button and show loading state
+                submitButton.disabled = true;
+                const originalButtonText = submitButton.innerHTML;
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Logging in...';
+
+                try {
+                    // Get form data
+                    const formData = new FormData(loginForm);
+                    const email = formData.get('email');
+                    const password = formData.get('password');
+                    const rememberMe = document.getElementById('remember-me').checked;
+
+                    const response = await fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password,
+                            rememberMe: rememberMe
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        // Success - redirect to dashboard or home page
+                        window.location.href = '/dashboard';
+                    } else {
+                        // Handle error
+                        showError(data.message || 'Login failed. Please try again.');
+                        // Reset button state
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError('An error occurred. Please try again later.');
+                    // Reset button state
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
+                }
+            });
+
+            // Helper function to show errors
+            function showError(message) {
+                // Create error div if it doesn't exist
+                let errorDiv = document.getElementById('login-error');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.id = 'login-error';
+                    errorDiv.className = 'alert alert-danger mt-3';
+                    loginForm.insertBefore(errorDiv, loginForm.firstChild);
+                }
+                errorDiv.textContent = message;
+                
+                // Automatically remove error message after 5 seconds
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 5000);
+            }
+        });
+    </script>
 </body>
 </html>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Login</title>
     <!-- Font Awesome -->
     <link
@@ -160,6 +161,9 @@
             const loginForm = document.getElementById('loginForm');
             const submitButton = loginForm.querySelector('button[type="submit"]');
             
+            // Get CSRF token from meta tag or hidden input
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
             loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
@@ -179,6 +183,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken  // Add CSRF token to headers
                         },
                         body: JSON.stringify({
                             email: email,
@@ -191,7 +196,7 @@
 
                     if (response.ok) {
                         // Success - redirect to dashboard or home page
-                        window.location.href = '/dashboard';
+                        window.location.href = data.redirect;
                     } else {
                         // Handle error
                         showError(data.message || 'Login failed. Please try again.');

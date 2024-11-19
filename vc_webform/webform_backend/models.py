@@ -37,12 +37,14 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    firstname = Column(String(50), nullable=False)
-    lastname = Column(String(50), nullable=False)
+    firstname = Column(String(80), nullable=False)
+    lastname = Column(String(80), nullable=False)
     email = Column(String(120), unique=True, nullable=False)
-    password_hash = Column(String(128), nullable=False)
+    password_hash = Column(String(200), nullable=False)
+    newsletter = Column(Boolean, default=False)
     access_level = Column(String(20), nullable=True)  # Access level can be NULL
     created_at = Column(DateTime, default=datetime.utcnow)
+    is_active = Column(Boolean, default=True)
 
     def set_password(self, password):
         """Hashes the password for storage."""

@@ -37,9 +37,9 @@ sentry_sdk.init(
     },
 )
 
-csrf = CSRFProtect(app)
-
 app = Flask(__name__)
+
+csrf = CSRFProtect(app)
 app.secret_key = secrets.token_hex(16)  # Generates a random 32-character secret key
 # # Session timeout duration (e.g., 30 minutes)
 app.config['SESSION_TYPE'] = 'filesystem'  # Or another session type like 'redis', etc.

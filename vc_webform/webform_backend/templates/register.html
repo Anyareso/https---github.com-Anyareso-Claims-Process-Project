@@ -1,190 +1,156 @@
+<!DOCTYPE html>
 <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.min.css" rel="stylesheet" />
+        <title>User Registration</title>
+    </head>
     <body>
-        <!-- Font Awesome -->
-        <link
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-        rel="stylesheet"
-        />
-        <!-- Google Fonts -->
-        <link
-        href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
-        rel="stylesheet"
-        />
-        <!-- MDB -->
-        <link
-        href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.min.css"
-        rel="stylesheet"
-        />
-        <!-- Section: Design Block -->
         <section class="background-radial-gradient overflow-hidden vh-100">
             <style>
-            .background-radial-gradient {
-                background-color: hsl(218, 41%, 15%);
-                background-image: radial-gradient(650px circle at 0% 0%,
-                    hsl(218, 41%, 35%) 15%,
-                    hsl(218, 41%, 30%) 35%,
-                    hsl(218, 41%, 20%) 75%,
-                    hsl(218, 41%, 19%) 80%,
-                    transparent 100%),
-                radial-gradient(1250px circle at 100% 100%,
-                    hsl(218, 41%, 45%) 15%,
-                    hsl(218, 41%, 30%) 35%,
-                    hsl(218, 41%, 20%) 75%,
-                    hsl(218, 41%, 19%) 80%,
-                    transparent 100%);
-            }
-        
-            #radius-shape-1 {
-                height: 220px;
-                width: 220px;
-                top: -60px;
-                left: -130px;
-                background: radial-gradient(#44006b, #ad1fff);
-                overflow: hidden;
-            }
-        
-            #radius-shape-2 {
-                border-radius: 38% 62% 63% 37% / 70% 33% 67% 30%;
-                bottom: -60px;
-                right: -110px;
-                width: 300px;
-                height: 300px;
-                background: radial-gradient(#44006b, #ad1fff);
-                overflow: hidden;
-            }
-        
-            .bg-glass {
-                background-color: hsla(0, 0%, 100%, 0.9) !important;
-                backdrop-filter: saturate(200%) blur(25px);
-            }
+                .background-radial-gradient {
+                    background-color: hsl(218, 41%, 15%);
+                    background-image: radial-gradient(650px circle at 0% 0%,
+                        hsl(218, 41%, 35%) 15%,
+                        hsl(218, 41%, 30%) 35%,
+                        hsl(218, 41%, 20%) 75%,
+                        hsl(218, 41%, 19%) 80%,
+                        transparent 100%),
+                    radial-gradient(1250px circle at 100% 100%,
+                        hsl(218, 41%, 45%) 15%,
+                        hsl(218, 41%, 30%) 35%,
+                        hsl(218, 41%, 20%) 75%,
+                        hsl(218, 41%, 19%) 80%,
+                        transparent 100%);
+                }
+                #radius-shape-1 {
+                    height: 220px;
+                    width: 220px;
+                    top: -60px;
+                    left: -130px;
+                    background: radial-gradient(#44006b, #ad1fff);
+                    overflow: hidden;
+                }
+                #radius-shape-2 {
+                    border-radius: 38% 62% 63% 37% / 70% 33% 67% 30%;
+                    bottom: -60px;
+                    right: -110px;
+                    width: 300px;
+                    height: 300px;
+                    background: radial-gradient(#44006b, #ad1fff);
+                    overflow: hidden;
+                }
+                .bg-glass {
+                    background-color: hsla(0, 0%, 100%, 0.9) !important;
+                    backdrop-filter: saturate(200%) blur(25px);
+                }
+                .error-message {
+                    color: #dc3545;
+                    font-size: 0.875em;
+                    margin-top: 0.25rem;
+                }
             </style>
-        
-            <div class="container px-4 py-5 px-md-5 text-center text-lg-start my-5 overflow-hidden">
-            <div class="row gx-lg-5 align-items-center mb-5">
-                <div class="col-lg-6 mb-5 mb-lg-0" style="z-index: 10">
-                <h1 class="my-5 display-5 fw-bold ls-tight" style="color: hsl(218, 81%, 95%)">
-                    The best offer <br />
-                    <span style="color: hsl(218, 81%, 75%)">for your business</span>
-                </h1>
-                <p class="mb-4 opacity-70" style="color: hsl(218, 81%, 85%)">
-                    Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                    Temporibus, expedita iusto veniam atque, magni tempora mollitia
-                    dolorum consequatur nulla, neque debitis eos reprehenderit quasi
-                    ab ipsum nisi dolorem modi. Quos?
-                </p>
-                </div>
-        
-                <div class="col-lg-6 mb-5 mb-lg-0 position-relative">
-                <div id="radius-shape-1" class="position-absolute rounded-circle shadow-5-strong"></div>
-                <div id="radius-shape-2" class="position-absolute shadow-5-strong"></div>
-        
-                <div class="card bg-glass">
-                    <div class="card-body px-4 py-5 px-md-5">
-                        <form id="registerForm" action="/register" method="POST">
-                            <!-- 2 column grid layout with text inputs for the first and last names -->
-                            <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <div data-mdb-input-init class="form-outline">
-                                <input type="text" id="firstname" class="form-control" />
-                                <label class="form-label" for="firstname">First name</label>
-                                </div>
+
+            <div class="container px-4 py-5 px-md-5 text-center text-lg-start my-5">
+                <div class="row gx-lg-5 align-items-center mb-5">
+                    <div class="col-lg-6 mb-5 mb-lg-0" style="z-index: 10">
+                        <h1 class="my-5 display-5 fw-bold ls-tight" style="color: hsl(218, 81%, 95%)">
+                            The best offer <br />
+                            <span style="color: hsl(218, 81%, 75%)">for your business</span>
+                        </h1>
+                        <p class="mb-4 opacity-70" style="color: hsl(218, 81%, 85%)">
+                            Lorem ipsum dolor, sit amet consectetur adipisicing elit.
+                            Temporibus, expedita iusto veniam atque, magni tempora mollitia
+                            dolorum consequatur nulla.
+                        </p>
+                    </div>
+
+                    <div class="col-lg-6 mb-5 mb-lg-0 position-relative">
+                        <div id="radius-shape-1" class="position-absolute rounded-circle shadow-5-strong"></div>
+                        <div id="radius-shape-2" class="position-absolute shadow-5-strong"></div>
+
+                        <div class="card bg-glass">
+                            <div class="card-body px-4 py-5 px-md-5">
+                                <form id="registerForm">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <div class="form-outline">
+                                                <input type="text" id="firstname" name="firstname" class="form-control" required />
+                                                <label class="form-label" for="firstname">First name</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <div class="form-outline">
+                                                <input type="text" id="lastname" name="lastname" class="form-control" required />
+                                                <label class="form-label" for="lastname">Last name</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-outline mb-4">
+                                        <input type="email" id="email" name="email" class="form-control" required />
+                                        <label class="form-label" for="email">Email address</label>
+                                    </div>
+
+                                    <div class="form-outline mb-4">
+                                        <input type="password" id="password" name="password" class="form-control" required />
+                                        <label class="form-label" for="password">Password</label>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 5px;">
+                                        <div id="password-strength" class="progress-bar" role="progressbar"></div>
+                                    </div>
+                                    <div id="password-feedback" class="small text-muted mt-1"></div>
+
+                                    <div class="form-check d-flex justify-content-center mb-4">
+                                        <input class="form-check-input me-2" type="checkbox" value="" id="newsletter" name="newsletter" checked />
+                                        <label class="form-check-label" for="newsletter">
+                                            Subscribe to our newsletter
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary btn-block mb-4">
+                                        Sign up
+                                    </button>
+
+                                    <div class="text-center">
+                                        <p>or sign in with:</p>
+                                        <button type="button" class="btn btn-link btn-floating mx-1">
+                                            <i class="fab fa-facebook-f"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-link btn-floating mx-1">
+                                            <i class="fab fa-google"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-link btn-floating mx-1">
+                                            <i class="fab fa-twitter"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-link btn-floating mx-1">
+                                            <i class="fab fa-github"></i>
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
-                            <div class="col-md-6 mb-4">
-                                <div data-mdb-input-init class="form-outline">
-                                <input type="text" id="lastname" class="form-control" />
-                                <label class="form-label" for="lastname">Last name</label>
-                                </div>
-                            </div>
-                            </div>
-            
-                            <!-- Email input -->
-                            <div data-mdb-input-init class="form-outline mb-4">
-                            <input type="email" id="email" class="form-control" />
-                            <label class="form-label" for="email">Email address</label>
-                            </div>
-            
-                            <!-- Password input -->
-                            <div data-mdb-input-init class="form-outline mb-4">
-                            <input type="password" id="password" class="form-control" />
-                            <label class="form-label" for="password">Password</label>
-                            </div>
-            
-                            <!-- Checkbox -->
-                            <div class="form-check d-flex justify-content-center mb-4">
-                            <input class="form-check-input me-2" type="checkbox" value="" id="newsletter" checked />
-                            <label class="form-check-label" for="newsletter">
-                                Subscribe to our newsletter
-                            </label>
-                            </div>
-            
-                            <!-- Submit button -->
-                            <button type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-4">
-                            Sign up
-                            </button>
-            
-                            <!-- Register buttons -->
-                            <div class="text-center">
-                            <p>or <a href="{{ url_for('login') }}">sign up</a> with:</p>
-                            <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
-                                <i class="fab fa-facebook-f"></i>
-                            </button>
-            
-                            <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
-                                <i class="fab fa-google"></i>
-                            </button>
-            
-                            <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
-                                <i class="fab fa-twitter"></i>
-                            </button>
-            
-                            <button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-link btn-floating mx-1">
-                                <i class="fab fa-github"></i>
-                            </button>
-                            </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
-                </div>
-            </div>
             </div>
         </section>
-        <!-- Section: Design Block -->
-         <!-- MDB -->
-        <script
-        type="text/javascript"
-        src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.umd.min.js"
-        ></script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.umd.min.js"></script>
         <script>
-            // Utility functions for form handling
-            const FormUtils = {
-                // Show error message below an input
-                showError(inputElement, message) {
-                    const formOutline = inputElement.closest('.form-outline');
-                    let errorDiv = formOutline.querySelector('.error-message');
-                    
-                    if (!errorDiv) {
-                        errorDiv = document.createElement('div');
-                        errorDiv.className = 'error-message text-danger small mt-1';
-                        formOutline.appendChild(errorDiv);
-                    }
-                    errorDiv.textContent = message;
-                    inputElement.classList.add('is-invalid');
-                    // Reinitialize MDB input to show proper styling
-                    new mdb.Input(formOutline).init();
-                },
+            document.addEventListener('DOMContentLoaded', function() {
+                // Get CSRF token from meta tag
+                const csrfToken = document.querySelector('meta[name=csrf-token]').getAttribute('content');
+                
+                // Initialize all form outlines
+                document.querySelectorAll('.form-outline').forEach(outline => {
+                    new mdb.Input(outline).init();
+                });
 
-                // Clear error message
-                clearError(inputElement) {
-                    const formOutline = inputElement.closest('.form-outline');
-                    const errorDiv = formOutline.querySelector('.error-message');
-                    if (errorDiv) errorDiv.remove();
-                    inputElement.classList.remove('is-invalid');
-                    // Reinitialize MDB input
-                    new mdb.Input(formOutline).init();
-                },
-
-                // Check password strength
-                checkPasswordStrength(password) {
+                // Password strength checker
+                function checkPasswordStrength(password) {
                     let strength = 0;
                     const feedback = [];
 
@@ -203,219 +169,163 @@
                     if (/[^A-Za-z0-9]/.test(password)) strength += 1;
                     else feedback.push("At least one special character");
 
-                    return {
-                        score: strength,
-                        feedback: feedback,
-                        isStrong: strength >= 4
-                    };
-                },
+                    return { score: strength, feedback, isStrong: strength >= 4 };
+                }
 
-                // Show password strength indicator
-                updatePasswordStrength(passwordInput) {
-                    const strengthResult = this.checkPasswordStrength(passwordInput.value);
-                    const strengthMeter = document.getElementById('password-strength');
-                    
-                    strengthMeter.style.width = `${(strengthResult.score / 5) * 100}%`;
+                // Password strength meter
+                const passwordInput = document.getElementById('password');
+                const strengthMeter = document.getElementById('password-strength');
+                const feedbackElement = document.getElementById('password-feedback');
+
+                passwordInput.addEventListener('input', () => {
+                    const result = checkPasswordStrength(passwordInput.value);
+                    strengthMeter.style.width = `${(result.score / 5) * 100}%`;
                     strengthMeter.className = `progress-bar ${
-                        strengthResult.score < 2 ? 'bg-danger' :
-                        strengthResult.score < 4 ? 'bg-warning' :
+                        result.score < 2 ? 'bg-danger' :
+                        result.score < 4 ? 'bg-warning' :
                         'bg-success'
                     }`;
-
-                    const feedbackElement = document.getElementById('password-feedback');
-                    feedbackElement.innerHTML = strengthResult.feedback.map(f => `<div>${f}</div>`).join('');
-                }
-            };
-
-            // Global CSRF protection setup
-            function setupCSRFProtection() {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                
-                if (csrfToken) {
-                    window.fetch = new Proxy(window.fetch, {
-                        apply(fetch, that, args) {
-                            const [resource, config] = args;
-                            if (config && config.method && config.method !== 'GET') {
-                                config.headers = {
-                                    ...config.headers,
-                                    'X-CSRF-TOKEN': csrfToken
-                                };
-                            }
-                            return fetch.apply(that, args);
-                        }
-                    });
-                }
-            }
-
-            // Form handling code
-            document.addEventListener('DOMContentLoaded', function() {
-                // Setup CSRF protection globally
-                setupCSRFProtection();
-
-                // Initialize all MDB elements
-                document.querySelectorAll('.form-outline').forEach((formOutline) => {
-                    new mdb.Input(formOutline).init();
+                    feedbackElement.innerHTML = result.feedback.map(f => `<div>${f}</div>`).join('');
                 });
 
-                // Add password strength meter to DOM
-                const passwordContainer = document.getElementById('password').closest('.form-outline');
-                passwordContainer.insertAdjacentHTML('afterend', `
-                    <div class="mb-2">
-                        <div class="progress" style="height: 5px;">
-                            <div id="password-strength" class="progress-bar" role="progressbar"></div>
-                        </div>
-                        <div id="password-feedback" class="small text-muted mt-1"></div>
-                    </div>
-                `);
-
-                // Add password confirmation field
-                const confirmPasswordHtml = `
-                    <div class="form-outline mb-4">
-                        <input type="password" id="password_confirm" class="form-control" />
-                        <label class="form-label" for="password_confirm">Confirm Password</label>
-                    </div>
-                `;
-                passwordContainer.insertAdjacentHTML('afterend', confirmPasswordHtml);
-                // Initialize the new password confirmation input
-                new mdb.Input(document.getElementById('password_confirm').closest('.form-outline')).init();
-
+                // Form submission
                 const form = document.getElementById('registerForm');
-                const submitButton = form.querySelector('button[type="submit"]');
-                const loadingSpinner = `<div class="spinner-border spinner-border-sm me-2" role="status"></div>`;
-
-                // Real-time password strength checking
-                const passwordInput = document.getElementById('password');
-                passwordInput.addEventListener('input', () => {
-                    FormUtils.updatePasswordStrength(passwordInput);
-                });
-
-                // Form submission handler
-                form.addEventListener('submit', async function(e) {
+                form.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
                     // Clear previous errors
-                    form.querySelectorAll('.error-message').forEach(err => err.remove());
-                    form.querySelectorAll('.is-invalid').forEach(input => {
-                        FormUtils.clearError(input);
-                    });
-
-                    // Get form data
-                    const formData = {
-                        firstname: document.getElementById('fistname').value.trim(),
-                        lastname: document.getElementById('lastname').value.trim(),
-                        email: document.getElementById('email').value.trim(),
-                        password: passwordInput.value,
-                        password_confirm: document.getElementById('password_confirm').value,
-                        newsletter: document.getElementById('newsletter').checked
-                    };
-
-                    // Validation
-                    let hasErrors = false;
-
-                    // Required fields validation
-                    ['firstname', 'lastname', 'email', 'password', 'password_confirm'].forEach(field => {
-                        if (!formData[field]) {
-                            FormUtils.showError(document.getElementById(field), 'This field is required');
-                            hasErrors = true;
-                        }
-                    });
-
-                    // Email validation
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (formData.email && !emailRegex.test(formData.email)) {
-                        FormUtils.showError(document.getElementById('email'), 'Please enter a valid email address');
-                        hasErrors = true;
+                    document.querySelectorAll('.error-message').forEach(el => el.remove());
+                    
+                    // Basic validation
+                    let isValid = true;
+                    const firstname = document.getElementById('firstname').value.trim();
+                    const lastname = document.getElementById('lastname').value.trim();
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    
+                    // Validate firstname
+                    if (!firstname || firstname.length < 2 || firstname.length > 80 || !/^[a-zA-Z\s-]+$/.test(firstname)) {
+                        showError('firstname', 'First name must be 2-80 characters and contain only letters, spaces, and hyphens');
+                        isValid = false;
                     }
 
-                    // Password validation
-                    const passwordStrength = FormUtils.checkPasswordStrength(formData.password);
-                    if (!passwordStrength.isStrong) {
-                        FormUtils.showError(passwordInput, 'Password does not meet strength requirements');
-                        hasErrors = true;
+                    // Validate lastname
+                    if (!lastname || lastname.length < 2 || lastname.length > 80 || !/^[a-zA-Z\s-]+$/.test(lastname)) {
+                        showError('lastname', 'Last name must be 2-80 characters and contain only letters, spaces, and hyphens');
+                        isValid = false;
+                    }
+                    
+                    // Validate email
+                    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                        showError('email', 'Please enter a valid email address');
+                        isValid = false;
+                    }
+                    
+                    // Validate password
+                    if (!checkPasswordStrength(password).isStrong) {
+                        showError('password', 'Password must be at least 8 characters with uppercase, lowercase, number, and special character');
+                        isValid = false;
                     }
 
-                    // Password confirmation
-                    if (formData.password !== formData.password_confirm) {
-                        FormUtils.showError(document.getElementById('password_confirm'), 'Passwords do not match');
-                        hasErrors = true;
-                    }
+                    if (isValid) {
+                        // Collect form data
+                        const formData = {
+                            firstname: firstname,
+                            lastname: lastname,
+                            email: email,
+                            password: password,
+                            newsletter: document.getElementById('newsletter').checked,
+                            csrf_token: csrfToken  // Add CSRF token
+                        };
 
-                    if (hasErrors) return;
+                        // Log form data to console
+                        console.log('Sending registration data to server:');
+                        console.log('----------------------------------------');
+                        Object.entries(formData).forEach(([key, value]) => {
+                            // Mask password for security
+                            console.log(`${key}: ${key === 'password' ? '*'.repeat(value.length) : value}`);
+                        });
+                        console.log('----------------------------------------');
 
-                    // Show loading state
-                    submitButton.disabled = true;
-                    submitButton.innerHTML = loadingSpinner + 'Processing...';
-
-                    try {
-                        const response = await fetch('/register', {
+                        // Send AJAX request
+                        fetch('/register', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                'X-CSRFToken': csrfToken  // Alternative header method
                             },
                             body: JSON.stringify(formData)
-                        });
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Log server response to console
+                            console.log('Server response:');
+                            console.log('----------------------------------------');
+                            console.log(JSON.stringify(data, null, 2));
+                            console.log('----------------------------------------');
 
-                        const data = await response.json();
+                            if (data.success) {
+                                // Show success toast
+                                const toast = new mdb.Toast(Object.assign(document.createElement('div'), {
+                                    innerHTML: `
+                                        <div class="toast-header bg-success text-white">
+                                            <strong class="me-auto">Success</strong>
+                                            <button type="button" class="btn-close btn-close-white" data-mdb-dismiss="toast"></button>
+                                        </div>
+                                        <div class="toast-body">
+                                            ${data.message}
+                                        </div>
+                                    `
+                                }), {
+                                    position: 'top-right',
+                                    autohide: true,
+                                    delay: 3000
+                                });
+                                toast.show();
 
-                        if (response.ok) {
-                            // Show success toast using MDB
-                            const toast = new mdb.Toast(document.createElement('div'), {
-                                html: `
-                                    <div class="toast-header bg-success text-white">
-                                        <strong class="me-auto">Success</strong>
+                                // Redirect or reset form
+                                form.reset();
+                                if (data.redirect) {
+                                    window.location.href = data.redirect;
+                                }
+                            } else {
+                                // Handle validation errors
+                                Object.entries(data.errors || {}).forEach(([field, message]) => {
+                                    showError(field, message);
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Registration error:', error);
+                            // Show generic error toast
+                            const toast = new mdb.Toast(Object.assign(document.createElement('div'), {
+                                innerHTML: `
+                                    <div class="toast-header bg-danger text-white">
+                                        <strong class="me-auto">Error</strong>
                                         <button type="button" class="btn-close btn-close-white" data-mdb-dismiss="toast"></button>
                                     </div>
                                     <div class="toast-body">
-                                        Registration successful! Redirecting...
+                                        An error occurred. Please try again.
                                     </div>
-                                `,
+                                `
+                            }), {
                                 position: 'top-right',
                                 autohide: true,
-                                delay: 2000
+                                delay: 3000
                             });
                             toast.show();
-
-                            // Redirect after toast
-                            setTimeout(() => {
-                                window.location.href = '/login';
-                            }, 2000);
-                        } else {
-                            // Handle server-side validation errors
-                            if (data.errors) {
-                                Object.keys(data.errors).forEach(field => {
-                                    const input = document.getElementById(field);
-                                    if (input) {
-                                        FormUtils.showError(input, data.errors[field]);
-                                    }
-                                });
-                            } else {
-                                throw new Error(data.message || 'Registration failed');
-                            }
-                        }
-                    } catch (error) {
-                        // Show error toast using MDB
-                        const toast = new mdb.Toast(document.createElement('div'), {
-                            html: `
-                                <div class="toast-header bg-danger text-white">
-                                    <strong class="me-auto">Error</strong>
-                                    <button type="button" class="btn-close btn-close-white" data-mdb-dismiss="toast"></button>
-                                </div>
-                                <div class="toast-body">
-                                    ${error.message || 'An error occurred. Please try again later.'}
-                                </div>
-                            `,
-                            position: 'top-right',
-                            autohide: true,
-                            delay: 5000
                         });
-                        toast.show();
-                    } finally {
-                        // Reset button state
-                        submitButton.disabled = false;
-                        submitButton.innerHTML = 'Sign up';
                     }
                 });
+
+                function showError(fieldId, message) {
+                    const field = document.getElementById(fieldId);
+                    const formOutline = field.closest('.form-outline');
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.textContent = message;
+                    formOutline.appendChild(errorDiv);
+                }
             });
         </script>
     </body>

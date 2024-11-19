@@ -348,10 +348,10 @@ def send_welcome_email(user):
         msg.body = f"""
         Hi {user.firstname},
 
-        Welcome to our platform! We're excited to have you on board.
+        Welcome to our annuity verification dashboard platform! We're excited to have you on board.
 
         Best regards,
-        Your Platform Team
+        Smatica Team
         """
         mail.send(msg)
     except Exception as e:

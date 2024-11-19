@@ -4,21 +4,22 @@ import base64
 import secrets
 import csv
 import sentry_sdk
-from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file, session, current_app
-from flask_session import Session
+from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file, current_app
+from flask import session as flask_session
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from pathlib import Path
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session as db_session
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import IntegrityError
 from validate_email import validate_email  # pip install py3-validate-email
 from io import BytesIO
 from datetime import datetime, timedelta
 from models import FormSubmission
 from models import User
+from models import LoginAttempt
 from base import Base  # Import the base class from your base file
 
 import logging
@@ -42,9 +43,8 @@ app = Flask(__name__)
 csrf = CSRFProtect(app)
 app.secret_key = secrets.token_hex(16)  # Generates a random 32-character secret key
 # # Session timeout duration (e.g., 30 minutes)
-app.config['SESSION_TYPE'] = 'filesystem'  # Or another session type like 'redis', etc.
+app.config['SESSION_TYPE'] = 'filesystem'  # Or another session type like 'redis', 'memcached', etc.
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
-flask_session = Session(app)
 
 # Database setup for SQL Server
 SERVER = 'localhost\\SQLEXPRESS'  # Use localhost or IP address
@@ -56,8 +56,6 @@ DATABASE_URI = 'mssql+pyodbc://localhost\\SQLEXPRESS/vc_test?driver=ODBC+Driver+
 
 # Set up the engine and session
 engine = create_engine(DATABASE_URI)
-# Create the session correctly
-session = Session(bind=engine)
 
 # Create the table(s) if they do not exist
 try:
@@ -102,6 +100,31 @@ def save_base64_image(data, filename):
     relative_file_path = os.path.relpath(file_path, app.config['UPLOAD_FOLDER']).replace("\\", "/")
     return relative_file_path
 
+# Optional: Logging function for tracking login attempts
+def log_login_attempt(user, success=False):
+    """
+    Log login attempts for security monitoring
+    
+    Args:
+        user (User): The user attempting to log in
+        success (bool): Whether the login attempt was successful
+    """
+    try:
+        login_log = LoginAttempt(
+            user_id=user.id,
+            email=user.email,
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string,
+            success=success,
+            timestamp=datetime.utcnow()
+        )
+        
+        with db_session(engine) as session:
+            session.add(login_log)
+            session.commit()
+    except Exception as e:
+        current_app.logger.error(f"Failed to log login attempt: {str(e)}")
+
 @app.route('/')
 def main_page():
     return render_template('vc.html')  # Serves the main page (vc.html)
@@ -118,56 +141,70 @@ def login():
     elif request.method == 'POST':
         try:
             data = request.get_json()
-            email = data.get('email')
-            password = data.get('password')
-            remember_me = data.get('rememberMe')
+            email = data.get('email', '').strip().lower()
+            password = data.get('password', '')
+            remember_me = data.get('rememberMe', False)
 
-            # Database operations using db_session
-            with Session(engine) as db_session:
-                user = db_session.query(User).filter_by(email=email).first()
-                
-                if not user:
-                    return jsonify({
-                        'success': False, 
-                        'message': 'Invalid email or password'
-                    }), 401
+            # Open a database session
+            with db_session(engine) as session:
+                # Attempt to find user by email
+                user = session.query(User).filter_by(email=email).first()
 
-                if not check_password_hash(user.password, password):
-                    return jsonify({
-                        'success': False, 
-                        'message': 'Invalid email or password'
-                    }), 401
+                if not user or not user.check_password(password):
+                    # Log failed login attempt
+                    log_login_attempt(email, success=False)
+                    return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
 
-                # Flask session management for cookies
-                session['user_id'] = user.id
-                session['email'] = user.email
-                
-                if remember_me:
-                    session.permanent = True
-                    # Optional: Set custom lifetime
-                    # app.permanent_session_lifetime = timedelta(days=30)
+                # Check if the user account is active
+                if hasattr(user, 'is_active') and not user.is_active:
+                    # Log failed login attempt
+                    log_login_attempt(email, success=False)
+                    return jsonify({'success': False, 'message': 'Account is not active'}), 403
 
-                # Flash message for success
-                flash('Login successful!', 'success')
-                    
-                return jsonify({
-                    'success': True, 
-                    'message': 'Login successful'
-                })
+                # Access the user attributes while session is active
+                user_id = user.id
+                user_email = user.email
+                access_level = user.access_level if hasattr(user, 'access_level') else 'user'
+
+            # Clear Flask session
+            flask_session.clear()
+            flask_session['user_id'] = user_id
+            flask_session['email'] = user_email
+            flask_session['access_level'] = access_level
+
+            # Implement remember me functionality
+            if remember_me:
+                flask_session.permanent = True
+                app.permanent_session_lifetime = timedelta(days=30)
+
+            # Log successful login attempt
+            log_login_attempt(user_email, success=True)
+
+            # Flash message for success
+            flash('Login successful!', 'success')
+
+            return jsonify({
+                'success': True,
+                'message': 'Login successful',
+                'redirect': url_for('dashboard')  # Optional: specify redirect
+            }), 200
 
         except Exception as e:
-            print(f"Login error: {str(e)}")
-            # Flash message for error
+            # Log the full error for server-side tracking
+            current_app.logger.error(f"Login error: {str(e)}", exc_info=True)
+
+            # Flash a generic error message to user
             flash('An error occurred during login', 'error')
+
             return jsonify({
-                'success': False, 
+                'success': False,
                 'message': 'An error occurred during login'
             }), 500
 
 @app.route('/logout')
 def logout():
     # Clear session and redirect to login page
-    session.clear()
+    flask_session.clear()
     return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -178,7 +215,7 @@ def register():
     
     if request.method == 'POST':
         try:
-            with Session(engine) as db_session:
+            with db_session(engine) as session:
                 data = request.get_json()
                 
                 # Extract data
@@ -308,7 +345,7 @@ def submit_form():
     print("Reached submit_form function")
     logging.info("Form submission route accessed")  # Test log message
     try:
-        with Session(engine) as db_session:
+        with db_session(engine) as session:
             logging.info("Getting form data...")
             logging.info("Form submission route accessed")
             
@@ -373,8 +410,8 @@ def submit_form():
             )
 
             # Save the form submission to the database
-            db_session.add(form_submission)
-            db_session.commit()
+            session.add(form_submission)
+            session.commit()
 
             # Log success
             logging.info(f"Form submission for {full_name} added to the database.")
@@ -383,7 +420,7 @@ def submit_form():
             return jsonify({'success': True})
     
     except Exception as e:
-        db_session.rollback()
+        session.rollback()
         logging.error(f"Error submitting form: {str(e)}")
         return jsonify({"message": f"Error submitting form: {str(e)}"}), 500
 
@@ -391,9 +428,9 @@ def submit_form():
 @app.route('/dashboard')
 def dashboard():
     try:
-        with Session(engine) as db_session:
+        with db_session(engine) as session:
             # Query to fetch all submissions
-            submissions = db_session.query(FormSubmission).all()
+            submissions = session.query(FormSubmission).all()
             return render_template('vc_dashboard.html', submissions=submissions)
     except Exception as e:
         return f"An error occurred: {e}"
@@ -402,8 +439,8 @@ def dashboard():
 @app.route('/submission/<int:submission_id>')
 def submission_details(submission_id):
     try:
-        with Session(engine) as db_session:
-            submission = db_session.query(FormSubmission).get(submission_id)
+        with db_session(engine) as session:
+            submission = session.query(FormSubmission).get(submission_id)
             if not submission:
                 return "Submission not found", 404
             return render_template('vc_submission_details.html', submission=submission)
@@ -426,9 +463,9 @@ def uploaded_file(filename):
 @app.route('/delete_submission/<int:submission_id>', methods=['POST'])
 def delete_submission(submission_id):
     try:
-        with Session(engine) as db_session:
+        with db_session(engine) as session:
             # Find the submission by ID
-            submission = db_session.query(FormSubmission).get(submission_id)
+            submission = session.query(FormSubmission).get(submission_id)
             
             if submission:
                 # Delete the associated files from the file system if they exist
@@ -449,8 +486,8 @@ def delete_submission(submission_id):
                             pass  # Handle the case where the file might not exist
                 
                 # Delete the submission record from the database
-                db_session.delete(submission)
-                db_session.commit()
+                session.delete(submission)
+                session.commit()
                 
                 flash('Submission deleted successfully!', 'success')  # Flash message for confirmation
             else:
@@ -464,7 +501,7 @@ def delete_submission(submission_id):
 @app.route('/export_csv', methods=['GET'])
 def export_csv():
     try:
-        with Session(engine) as db_session:
+        with db_session(engine) as session:
             # Get the start and end date from the request parameters
             start_date = request.args.get('start_date')
             end_date = request.args.get('end_date')
@@ -479,7 +516,7 @@ def export_csv():
                 return redirect(request.referrer)  # Redirect to the same page or dashboard
 
             # Query the FormSubmission table with date filters
-            query = db_session.query(FormSubmission)
+            query = session.query(FormSubmission)
 
             # Apply date filters if provided
             if start_date:

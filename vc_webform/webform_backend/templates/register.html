@@ -85,7 +85,7 @@
                             <div class="row">
                             <div class="col-md-6 mb-4">
                                 <div data-mdb-input-init class="form-outline">
-                                <input type="text" id="fistname" class="form-control" />
+                                <input type="text" id="firstname" class="form-control" />
                                 <label class="form-label" for="firstname">First name</label>
                                 </div>
                             </div>
@@ -154,5 +154,269 @@
         type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.umd.min.js"
         ></script>
+        <script>
+            // Utility functions for form handling
+            const FormUtils = {
+                // Show error message below an input
+                showError(inputElement, message) {
+                    const formOutline = inputElement.closest('.form-outline');
+                    let errorDiv = formOutline.querySelector('.error-message');
+                    
+                    if (!errorDiv) {
+                        errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-message text-danger small mt-1';
+                        formOutline.appendChild(errorDiv);
+                    }
+                    errorDiv.textContent = message;
+                    inputElement.classList.add('is-invalid');
+                    // Reinitialize MDB input to show proper styling
+                    new mdb.Input(formOutline).init();
+                },
+
+                // Clear error message
+                clearError(inputElement) {
+                    const formOutline = inputElement.closest('.form-outline');
+                    const errorDiv = formOutline.querySelector('.error-message');
+                    if (errorDiv) errorDiv.remove();
+                    inputElement.classList.remove('is-invalid');
+                    // Reinitialize MDB input
+                    new mdb.Input(formOutline).init();
+                },
+
+                // Check password strength
+                checkPasswordStrength(password) {
+                    let strength = 0;
+                    const feedback = [];
+
+                    if (password.length >= 8) strength += 1;
+                    else feedback.push("At least 8 characters");
+
+                    if (/[A-Z]/.test(password)) strength += 1;
+                    else feedback.push("At least one uppercase letter");
+
+                    if (/[a-z]/.test(password)) strength += 1;
+                    else feedback.push("At least one lowercase letter");
+
+                    if (/[0-9]/.test(password)) strength += 1;
+                    else feedback.push("At least one number");
+
+                    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+                    else feedback.push("At least one special character");
+
+                    return {
+                        score: strength,
+                        feedback: feedback,
+                        isStrong: strength >= 4
+                    };
+                },
+
+                // Show password strength indicator
+                updatePasswordStrength(passwordInput) {
+                    const strengthResult = this.checkPasswordStrength(passwordInput.value);
+                    const strengthMeter = document.getElementById('password-strength');
+                    
+                    strengthMeter.style.width = `${(strengthResult.score / 5) * 100}%`;
+                    strengthMeter.className = `progress-bar ${
+                        strengthResult.score < 2 ? 'bg-danger' :
+                        strengthResult.score < 4 ? 'bg-warning' :
+                        'bg-success'
+                    }`;
+
+                    const feedbackElement = document.getElementById('password-feedback');
+                    feedbackElement.innerHTML = strengthResult.feedback.map(f => `<div>${f}</div>`).join('');
+                }
+            };
+
+            // Global CSRF protection setup
+            function setupCSRFProtection() {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                
+                if (csrfToken) {
+                    window.fetch = new Proxy(window.fetch, {
+                        apply(fetch, that, args) {
+                            const [resource, config] = args;
+                            if (config && config.method && config.method !== 'GET') {
+                                config.headers = {
+                                    ...config.headers,
+                                    'X-CSRF-TOKEN': csrfToken
+                                };
+                            }
+                            return fetch.apply(that, args);
+                        }
+                    });
+                }
+            }
+
+            // Form handling code
+            document.addEventListener('DOMContentLoaded', function() {
+                // Setup CSRF protection globally
+                setupCSRFProtection();
+
+                // Initialize all MDB elements
+                document.querySelectorAll('.form-outline').forEach((formOutline) => {
+                    new mdb.Input(formOutline).init();
+                });
+
+                // Add password strength meter to DOM
+                const passwordContainer = document.getElementById('password').closest('.form-outline');
+                passwordContainer.insertAdjacentHTML('afterend', `
+                    <div class="mb-2">
+                        <div class="progress" style="height: 5px;">
+                            <div id="password-strength" class="progress-bar" role="progressbar"></div>
+                        </div>
+                        <div id="password-feedback" class="small text-muted mt-1"></div>
+                    </div>
+                `);
+
+                // Add password confirmation field
+                const confirmPasswordHtml = `
+                    <div class="form-outline mb-4">
+                        <input type="password" id="password_confirm" class="form-control" />
+                        <label class="form-label" for="password_confirm">Confirm Password</label>
+                    </div>
+                `;
+                passwordContainer.insertAdjacentHTML('afterend', confirmPasswordHtml);
+                // Initialize the new password confirmation input
+                new mdb.Input(document.getElementById('password_confirm').closest('.form-outline')).init();
+
+                const form = document.getElementById('registerForm');
+                const submitButton = form.querySelector('button[type="submit"]');
+                const loadingSpinner = `<div class="spinner-border spinner-border-sm me-2" role="status"></div>`;
+
+                // Real-time password strength checking
+                const passwordInput = document.getElementById('password');
+                passwordInput.addEventListener('input', () => {
+                    FormUtils.updatePasswordStrength(passwordInput);
+                });
+
+                // Form submission handler
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    // Clear previous errors
+                    form.querySelectorAll('.error-message').forEach(err => err.remove());
+                    form.querySelectorAll('.is-invalid').forEach(input => {
+                        FormUtils.clearError(input);
+                    });
+
+                    // Get form data
+                    const formData = {
+                        firstname: document.getElementById('fistname').value.trim(),
+                        lastname: document.getElementById('lastname').value.trim(),
+                        email: document.getElementById('email').value.trim(),
+                        password: passwordInput.value,
+                        password_confirm: document.getElementById('password_confirm').value,
+                        newsletter: document.getElementById('newsletter').checked
+                    };
+
+                    // Validation
+                    let hasErrors = false;
+
+                    // Required fields validation
+                    ['firstname', 'lastname', 'email', 'password', 'password_confirm'].forEach(field => {
+                        if (!formData[field]) {
+                            FormUtils.showError(document.getElementById(field), 'This field is required');
+                            hasErrors = true;
+                        }
+                    });
+
+                    // Email validation
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (formData.email && !emailRegex.test(formData.email)) {
+                        FormUtils.showError(document.getElementById('email'), 'Please enter a valid email address');
+                        hasErrors = true;
+                    }
+
+                    // Password validation
+                    const passwordStrength = FormUtils.checkPasswordStrength(formData.password);
+                    if (!passwordStrength.isStrong) {
+                        FormUtils.showError(passwordInput, 'Password does not meet strength requirements');
+                        hasErrors = true;
+                    }
+
+                    // Password confirmation
+                    if (formData.password !== formData.password_confirm) {
+                        FormUtils.showError(document.getElementById('password_confirm'), 'Passwords do not match');
+                        hasErrors = true;
+                    }
+
+                    if (hasErrors) return;
+
+                    // Show loading state
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = loadingSpinner + 'Processing...';
+
+                    try {
+                        const response = await fetch('/register', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify(formData)
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            // Show success toast using MDB
+                            const toast = new mdb.Toast(document.createElement('div'), {
+                                html: `
+                                    <div class="toast-header bg-success text-white">
+                                        <strong class="me-auto">Success</strong>
+                                        <button type="button" class="btn-close btn-close-white" data-mdb-dismiss="toast"></button>
+                                    </div>
+                                    <div class="toast-body">
+                                        Registration successful! Redirecting...
+                                    </div>
+                                `,
+                                position: 'top-right',
+                                autohide: true,
+                                delay: 2000
+                            });
+                            toast.show();
+
+                            // Redirect after toast
+                            setTimeout(() => {
+                                window.location.href = '/login';
+                            }, 2000);
+                        } else {
+                            // Handle server-side validation errors
+                            if (data.errors) {
+                                Object.keys(data.errors).forEach(field => {
+                                    const input = document.getElementById(field);
+                                    if (input) {
+                                        FormUtils.showError(input, data.errors[field]);
+                                    }
+                                });
+                            } else {
+                                throw new Error(data.message || 'Registration failed');
+                            }
+                        }
+                    } catch (error) {
+                        // Show error toast using MDB
+                        const toast = new mdb.Toast(document.createElement('div'), {
+                            html: `
+                                <div class="toast-header bg-danger text-white">
+                                    <strong class="me-auto">Error</strong>
+                                    <button type="button" class="btn-close btn-close-white" data-mdb-dismiss="toast"></button>
+                                </div>
+                                <div class="toast-body">
+                                    ${error.message || 'An error occurred. Please try again later.'}
+                                </div>
+                            `,
+                            position: 'top-right',
+                            autohide: true,
+                            delay: 5000
+                        });
+                        toast.show();
+                    } finally {
+                        // Reset button state
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = 'Sign up';
+                    }
+                });
+            });
+        </script>
     </body>
 </html>

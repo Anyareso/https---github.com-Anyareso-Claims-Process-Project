@@ -4,6 +4,7 @@ import base64
 import secrets
 import csv
 import sentry_sdk
+from functools import wraps
 from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file, current_app
 from flask import session as flask_session
 from flask_wtf.csrf import CSRFProtect, CSRFError
@@ -106,24 +107,45 @@ def log_login_attempt(user, success=False):
     Log login attempts for security monitoring
     
     Args:
-        user (User): The user attempting to log in
+        user (User or str): The user attempting to log in, or the user's email if login fails
         success (bool): Whether the login attempt was successful
     """
     try:
+        # If the 'user' is a string (email), log the email
+        if isinstance(user, str):
+            email = user
+            user_id = None  # No user ID available
+        else:
+            email = user.email
+            user_id = user.id
+        
+        # Create the login log entry
         login_log = LoginAttempt(
-            user_id=user.id,
-            email=user.email,
+            user_id=user_id,
+            email=email,
             ip_address=request.remote_addr,
             user_agent=request.user_agent.string,
             success=success,
             timestamp=datetime.utcnow()
         )
         
+        # Add the login attempt to the database
         with db_session(engine) as session:
             session.add(login_log)
             session.commit()
+    
     except Exception as e:
         current_app.logger.error(f"Failed to log login attempt: {str(e)}")
+
+# Protect the routes that should only be accessible by logged-in users
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not flask_session.get('user_id'):
+            # If not logged in, redirect to login page
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/')
 def main_page():
@@ -426,6 +448,7 @@ def submit_form():
 
 # Route for the dashboard
 @app.route('/dashboard')
+@login_required
 def dashboard():
     try:
         with db_session(engine) as session:
@@ -437,6 +460,7 @@ def dashboard():
 
 # Route for individual submission details
 @app.route('/submission/<int:submission_id>')
+@login_required
 def submission_details(submission_id):
     try:
         with db_session(engine) as session:

@@ -4,7 +4,7 @@ import base64
 import secrets
 import csv
 import sentry_sdk
-from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file, session
+from flask import Flask, request, jsonify, render_template, redirect, url_for, send_from_directory, flash, send_file, session, current_app
 from flask_session import Session
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from pathlib import Path
@@ -171,105 +171,107 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
+#@csrf.exempt  # Optional: if you want to disable CSRF for this route
 def register():
     if request.method == 'GET':
         return render_template('register.html')
     
     if request.method == 'POST':
         try:
-            data = request.get_json()
-            
-            # Extract data
-            firstname = data.get('firstname', '').strip()
-            lastname = data.get('lastname', '').strip()
-            email = data.get('email', '').strip().lower()
-            password = data.get('password', '')
-            newsletter = data.get('newsletter', False)
+            with Session(engine) as db_session:
+                data = request.get_json()
+                
+                # Extract data
+                firstname = data.get('firstname', '').strip()
+                lastname = data.get('lastname', '').strip()
+                email = data.get('email', '').strip().lower()
+                password = data.get('password', '')
+                newsletter = data.get('newsletter', False)
 
-            errors = {}
+                errors = {}
 
-            # Validate firstname
-            if not firstname:
-                errors['firstname'] = 'First name is required'
-            elif len(firstname) < 2:
-                errors['firstname'] = 'First name must be at least 2 characters'
-            elif len(firstname) > 80:
-                errors['firstname'] = 'First name must be less than 80 characters'
-            elif not re.match(r'^[a-zA-Z\s-]+$', firstname):
-                errors['firstname'] = 'First name can only contain letters, spaces, and hyphens'
+                # Validate firstname
+                if not firstname:
+                    errors['firstname'] = 'First name is required'
+                elif len(firstname) < 2:
+                    errors['firstname'] = 'First name must be at least 2 characters'
+                elif len(firstname) > 80:
+                    errors['firstname'] = 'First name must be less than 80 characters'
+                elif not re.match(r'^[a-zA-Z\s-]+$', firstname):
+                    errors['firstname'] = 'First name can only contain letters, spaces, and hyphens'
 
-            # Validate lastname
-            if not lastname:
-                errors['lastname'] = 'Last name is required'
-            elif len(lastname) < 2:
-                errors['lastname'] = 'Last name must be at least 2 characters'
-            elif len(lastname) > 80:
-                errors['lastname'] = 'Last name must be less than 80 characters'
-            elif not re.match(r'^[a-zA-Z\s-]+$', lastname):
-                errors['lastname'] = 'Last name can only contain letters, spaces, and hyphens'
+                # Validate lastname
+                if not lastname:
+                    errors['lastname'] = 'Last name is required'
+                elif len(lastname) < 2:
+                    errors['lastname'] = 'Last name must be at least 2 characters'
+                elif len(lastname) > 80:
+                    errors['lastname'] = 'Last name must be less than 80 characters'
+                elif not re.match(r'^[a-zA-Z\s-]+$', lastname):
+                    errors['lastname'] = 'Last name can only contain letters, spaces, and hyphens'
 
-            # Validate email
-            if not email:
-                errors['email'] = 'Email is required'
-            elif not validate_email(email):
-                errors['email'] = 'Invalid email address'
-            elif User.query.filter_by(email=email).first():
-                errors['email'] = 'Email already registered'
+                # Validate email
+                if not email:
+                    errors['email'] = 'Email is required'
+                elif not validate_email(email):
+                    errors['email'] = 'Invalid email address'
+                elif db_session.query(User).filter_by(email=email).first():
+                    errors['email'] = 'Email already registered'
 
-            # Validate password
-            if not password:
-                errors['password'] = 'Password is required'
-            elif len(password) < 8:
-                errors['password'] = 'Password must be at least 8 characters'
-            elif not re.search(r'[A-Z]', password):
-                errors['password'] = 'Password must contain at least one uppercase letter'
-            elif not re.search(r'[a-z]', password):
-                errors['password'] = 'Password must contain at least one lowercase letter'
-            elif not re.search(r'[0-9]', password):
-                errors['password'] = 'Password must contain at least one number'
-            elif not re.search(r'[^A-Za-z0-9]', password):
-                errors['password'] = 'Password must contain at least one special character'
+                # Validate password
+                if not password:
+                    errors['password'] = 'Password is required'
+                elif len(password) < 8:
+                    errors['password'] = 'Password must be at least 8 characters'
+                elif not re.search(r'[A-Z]', password):
+                    errors['password'] = 'Password must contain at least one uppercase letter'
+                elif not re.search(r'[a-z]', password):
+                    errors['password'] = 'Password must contain at least one lowercase letter'
+                elif not re.search(r'[0-9]', password):
+                    errors['password'] = 'Password must contain at least one number'
+                elif not re.search(r'[^A-Za-z0-9]', password):
+                    errors['password'] = 'Password must contain at least one special character'
 
-            if errors:
-                return jsonify({'success': False, 'errors': errors}), 400
+                if errors:
+                    return jsonify({'success': False, 'errors': errors}), 400
 
-            # Create new user
-            new_user = User(
-                firstname=firstname,
-                lastname=lastname,
-                email=email,
-                newsletter=newsletter,
-                access_level='user',  # Default access level
-                created_at=datetime.utcnow()
-            )
-            new_user.set_password(password)
+                # Create new user
+                new_user = User(
+                    firstname=firstname,
+                    lastname=lastname,
+                    email=email,
+                    newsletter=newsletter,
+                    access_level='user',  # Default access level
+                    created_at = datetime.datetime.now(datetime.timezone.utc)
+                )
+                new_user.set_password(password)
 
-            # Add to database
-            db.session.add(new_user)
-            db.session.commit()
+                # Add to database
+                db_session.add(new_user)
+                db_session.commit()
 
-            # Optional: Send welcome email
-            try:
-                send_welcome_email(new_user)
-            except Exception as e:
-                # Log the error but don't stop the registration process
-                current_app.logger.error(f"Failed to send welcome email: {str(e)}")
+                # Optional: Send welcome email
+                try:
+                    send_welcome_email(new_user)
+                except Exception as e:
+                    # Log the error but don't stop the registration process
+                    current_app.logger.error(f"Failed to send welcome email: {str(e)}")
 
-            return jsonify({
-                'success': True,
-                'message': 'Registration successful!',
-                'redirect': url_for('login')
-            }), 201
+                return jsonify({
+                    'success': True,
+                    'message': 'Registration successful!',
+                    'redirect': url_for('login')
+                }), 201
 
         except IntegrityError:
-            db.session.rollback()
+            db_session.rollback()
             return jsonify({
                 'success': False,
                 'errors': {'email': 'Email already registered'}
             }), 400
         
         except Exception as e:
-            db.session.rollback()
+            db_session.rollback()
             current_app.logger.error(f"Registration error: {str(e)}")
             return jsonify({
                 'success': False,

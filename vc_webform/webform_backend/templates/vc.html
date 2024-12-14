@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="" width="device-width", initial-scale="1.0">
     <title>Annuity Verification Certificate</title>
-    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body, html {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+            font-family: 'Montserrat', Arial, sans-serif;
             background-color: #f5f5f5;
             background-image: url('/static/img/blank_background.png');
             background-repeat: no-repeat;
@@ -27,23 +25,21 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 15px;
         }
         .floating-window {
             background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 1000px;
-            height: 83vh;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
             display: flex;
             flex-direction: column;
         }
         .window-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
         }
         .close-btn {
             background: none;
@@ -57,59 +53,74 @@
             overflow: hidden;
         }
         .sidebar {
-            width: 200px;
+            width: 250px;
             background-color: #2c2e3a;
-            color: #f4f4f4;
-            padding: 20px;
+            padding: 1.5rem;
             overflow-y: auto;
         }
         .sidebar h3 {
-            font-size: 19px;
-            font-family: 'Montserrat', Arial, serif;
+            color: #fff;
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
         }
-        .main-content {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            font-family: 'Montserrat', Arial, serif;
-        }
+        
         .sidebar ul {
-            list-style-type: none;
+            list-style: none;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+            margin: 0;
         }
         .sidebar li {
-            position: relative;
-            display: flex;
-            align-items: center;
-            font-family: 'Montserrat', Arial, sans-serif;
+            margin-bottom: 1rem;
         }
-        .sidebar li.active {
-            font-weight: bold;
-            color: #f4f4f4;
+        .sidebar a {
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5rem;
+            display: block;
+            border-radius: 6px;
+            transition: background-color 0.3s;
         }
-
-        .sidebar li.inactive {
-            color: #777;
+        .sidebar a.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+        }
+        .sidebar a.inactive {
+            color: #6c757d;
+            pointer-events: none;
         }
         /* Adjust styling for each step description */
-        .sidebar li a {
+        /* .sidebar li a {
             text-decoration: none;
             color: inherit;
             font-size: 14px;
         }
         .sidebar li a:hover {
             text-decoration: underline;
+        } */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
         }
         .form-step {
             display: none;
+            animation: fadeIn 0.3s;
         }
         .form-step.active {
             display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .form-control {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.75rem;
+        }
+        .form-control:focus {
+            border-color: #3471d6;
+            box-shadow: 0 0 0 0.2rem rgba(52, 113, 214, 0.25);
         }
         .button-container {
             display: flex;
@@ -117,7 +128,15 @@
             margin-top: auto;
             padding-top: 20px;
         }
-
+        .btn-primary {
+            background-color: #3471d6;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+        }
+        .btn-primary:hover {
+            background-color: #2857a9;
+        }
         .skip-btn {
             display: inline-block;
             padding: 10px 20px;
@@ -139,26 +158,44 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
+        /* Form specific styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .row .form-group {
+            flex: 1;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #2c2e3a;
+            border-radius: 7px;
+            background-color: #f4f4f4;
+            font-family: 'Montserrat', Arial, serif;
+        }
+        /* Maintain your original button styles */
+        /* Maintain your original button styles */
         .nav-button {
             padding: 5px 10px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-family: 'Montserrat', arial, serif;
-        }
-        .nav-button:hover {
-            background-color: #3471d6;;
-        }
-        .nav-button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
         }
         #prevBtn {
             border: 2px solid black;
             border-radius: 8px;
             width: 70px;
             height: 35px;
-            text-align: center;
         }
         #nextBtn {
             background-color: #3471d6;
@@ -167,32 +204,88 @@
             width: 100px;
             height: 35px;
             color: white;
-            font-family: 'Montserrat', arial, serif;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .form-group input[type="text"],
-        .form-group input[type="number"],
-        .form-group input[type="tel"],
-        .form-group input[type="email"] {
+        /* File upload styles */
+        .upload-container {
             width: 90%;
-            padding: 8px;
-            border: 3px solid #2c2e3a;
-            border-radius: 7px;
-            background-color: #f4f4f4;
-            font-family: 'Montserrat', Arial, serif;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .row {
+        .file-upload-group {
+            margin-bottom: 20px;
+        }
+        .file-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+        }
+        /* Signature box container adjustments */
+        .signature-box {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 15px;
+            background: #DCDCDC;
+            width: 300px;
+            height: 225px; /* Increased height to accommodate buttons */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Canvas styling */
+        #signature-pad-1 {
+            background: #fff;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+        }
+
+        /* Button container */
+        .signature-box .buttons {
             display: flex;
             gap: 10px;
+            margin-top: 5px;
+            justify-content: flex-end;
         }
-        .row input {
-            flex: 1;
+
+        /* Individual button styling */
+        .signature-box .buttons button {
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease;
+        }
+
+        /* Cancel button specific styles */
+        .signature-box .buttons .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .signature-box .buttons .btn-danger:hover {
+            background-color: #bb2d3b;
+        }
+
+        /* Accept button specific styles */
+        .signature-box .buttons .btn-primary {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .signature-box .buttons .btn-primary:hover {
+            background-color: #0b5ed7;
+        }
+        /* Form step styles */
+        .form-step {
+            display: none;
+        }
+        .form-step.active {
+            display: block;
         }
         
         /* Identity verification container */
@@ -212,27 +305,15 @@
 
         /* Video wrap container */
         .video-wrap {
-            position: relative;
-            width: 100%;
-            max-width: 320px;
-            margin-bottom: 20px;
+            max-width: 400px;
+            margin: 0 auto;
         }
 
-        /* Video element styling */
-        #video {
+        /* Video & Canvas element styling */
+        #video, #canvas {
             width: 100%;
-            height: auto;
-            border-radius: 10px;
-            border: 3px solid #ddd;
-        }
-
-        /* Canvas styling */
-        #canvas {
-            width: 100%;
-            height: 200px;
-            border-radius: 10px;
-            border: 3px solid #ddd;
-            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
         }
 
         /* Button container and button styles */
@@ -242,13 +323,7 @@
             gap: 15px;
             width: 100%;
         }
-        button#redo {
-            background-color: #e74c3c;
-        }
-
-        button#redo:hover {
-            background-color: #c0392b;
-        }
+        
         * Feedback message styling */
         #feedback {
             font-size: 14px;
@@ -296,18 +371,14 @@
 
         /* File Upload styles */
         .upload-container {
-            width: 90%;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            padding: 20px;
-            background-color: #f9f9f9;
+            background-color: #f8f9fa;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
         }
 
         /* File Upload Group */
         .file-upload-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
         }
 
         /* Label Style */
@@ -352,35 +423,84 @@
             color: red;
             font-weight: bold;
         }
+
+        /* Signature box styles */
         .signature-box {
             border: 1px solid #ddd;
             padding: 10px;
             margin-bottom: 15px;
-            align-items: center;
             background: #DCDCDC;
-            width:300px;
-            height:205px;
+            width: 300px;
+            height: 205px;
         }
         #signature-pad-1 {
             background: #fff;
             margin-top: 5px;
             margin-bottom: 10px;
         }
-        /* Buttons */
-        .form-group .buttons{
-            font-family: 'Montserrat', arial, serif;
-            font-size: large;
+        /* Amendments Step Styles */
+        .beneficiaries-section,
+        .bank-details-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .beneficiary-entry {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #dee2e6;
+            position: relative;
+        }
+
+        .remove-beneficiary-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
             cursor: pointer;
         }
-        .buttons #cancel {
-            background-color: #A9A9A9;
-            color: #fff;
+
+        .remove-beneficiary-btn:hover {
+            background-color: #bb2d3b;
         }
-        .buttons #accept {
+
+        #add-beneficiary-btn {
             background-color: #3471d6;
-            color: #fff;
-            margin-left: 50px;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
         }
+
+        #add-beneficiary-btn:hover {
+            background-color: #2857a9;
+        }
+
+        #add-beneficiary-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .bank-details-section .file-input {
+            margin-top: 10px;
+        }
+
+        /* Add spacing between sections */
+        .beneficiaries-section h4,
+        .bank-details-section h4 {
+            margin-bottom: 20px;
+            color: #2c2e3a;
+        }
+        
         /* Align radio buttons horizontally */
         .form-group input[type="radio"] {
             margin-right: 10px;
@@ -396,7 +516,7 @@
         .form-group input[type="checkbox"] {
             margin-right: 10px;
             display: inline-block;
-        }
+        } */
 
         /* Optional: add some space between the checkbox and label */
         .form-group input[type="checkbox"] + label {
@@ -406,15 +526,15 @@
         .form-group a {
             text-decoration: none;
         }
+        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
-            z-index: 1;
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: none;
             background-color: rgba(0,0,0,0.4);
         }
         .modal-content {
@@ -423,6 +543,8 @@
             padding: 20px;
             border: 1px solid #888;
             width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
         }
         .close {
             color: #aaa;
@@ -452,14 +574,14 @@
         .flash-message.error { background-color: #f44336; }
         .flash-message.info { background-color: #2196F3; }
     </style>
-    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+
 </head>
 <body>
     <div class="overlay">
         <div class="floating-window">
-            <div class="window-header">
-                <h2>Annuity Verification Certificate</h2>
-                <button class="close-btn">&times;</button>
+            <div class="window-header d-flex justify-content-between align-items-center">
+                <h2 class="h4 mb-0">Annuity Verification Certificate</h2>
+                <button class="btn-close" aria-label="Close"></button>
             </div>
             <div class="window-content">
                 <div class="sidebar">
@@ -468,7 +590,8 @@
                         <li><a href="#" class="step-link active" data-step="1">Step 1: Personal Info</a></li>
                         <li><a href="#" class="step-link" data-step="2">Step 2: Identity Verification</a></li>
                         <li><a href="#" class="step-link" data-step="3">Step 3: Document Upload</a></li>
-                        <li><a href="#" class="step-link inactive" data-step="4">Step 4: Submission</a></li>
+                        <li><a href="#" class="step-link" data-step="4">Step 4: Amendments</a></li>
+                        <li><a href="#" class="step-link" data-step="5">Step 5: Submission</a></li>
                     </ul>
                 </div>
                 <div class="main-content">
@@ -478,39 +601,39 @@
                             <p>Enter your personal details here.</p>
                             <div class="form-group">
                                 <label for="fullName">Full Name</label>
-                                <input type="text" id="fullName" name="fullName" required>
+                                <input type="text" class="form-control" id="fullName" name="fullName" required>
                             </div>
                             <div class="row">
                                 <div class="form-group">
                                     <label for="idNumber">ID Number</label>
-                                    <input type="number" id="idNumber" name="idNumber" required>
+                                    <input type="number" class="form-control" id="idNumber" name="idNumber" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="phoneNumber">Phone Number</label>
-                                    <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                                    <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" required>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="kraPin">KRA Pin</label>
-                                <input type="text" id="kraPin" name="kraPin" required>
+                                <input type="text" class="form-control" id="kraPin" name="kraPin" required>
                             </div>
                             <div class="row">
                                 <div class="form-group">
                                     <label for="address">Address</label>
-                                    <input type="text" id="address" name="address" required>
+                                    <input type="text" class="form-control" id="address" name="address" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="code">Code</label>
-                                    <input type="text" id="code" name="code" required>
+                                    <input type="text" class="form-control" id="code" name="code" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="town">Town</label>
-                                    <input type="text" id="town" name="town" required>
+                                    <input type="text" class="form-control" id="town" name="town" required>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="emailAddress">Email Address</label>
-                                <input type="email" id="emailAddress" name="emailAddress" required>
+                                <input type="email" class="form-control" id="emailAddress" name="emailAddress" required>
                             </div>
                             <button type="button" class="skip-btn" data-skip="2">Skip</button>
                         </div>
@@ -557,26 +680,76 @@
                                         <input type="file" accept="image/*,.pdf" id="kra-pin-certificate" name="kra-pin-certificate"  class="file-input"  onchange="FileUploadModule.handleFileUpload(event)">
                                         <p id="kra-pin-certificate-message" class="file-message"></p>
                                     </div>
-                                    <!-- ATM Card Upload -->
-                                    <div class="file-upload-group">
-                                        <label for="atm-card" class="upload-label">ATM Card</label>
-                                        <input type="file" accept="image/*,.pdf" id="atm-card" name="atm-card" class="file-input"  onchange="FileUploadModule.handleFileUpload(event)">
-                                        <p id="atm-card-message" class="file-message"></p>
-                                    </div>
-
                                 </div>
                             </div>
                             <button type="button" class="skip-btn" data-skip="4">Skip</button>
                         </div>
                         <div class="form-step" id="step4">
-                            <h3>Step 4: Submission</h3>
+                            <h3>Step 4: Amendments</h3>
+                            <p>Update your beneficiaries and/or bank details. Leave blank if no changes are needed.</p>
+                            
+                            <!-- Beneficiaries Section -->
+                            <div class="beneficiaries-section">
+                                <h4>Beneficiaries</h4>
+                                <div id="beneficiaries-container">
+                                    <div class="beneficiary-entry">
+                                        <div class="row">
+                                            <div class="form-group">
+                                                <label for="beneficiary-name-1">Full Name</label>
+                                                <input type="text" class="form-control" id="beneficiary-name-1" name="beneficiary-name-1">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="beneficiary-dob-1">Date of Birth</label>
+                                                <input type="date" class="form-control" id="beneficiary-dob-1" name="beneficiary-dob-1">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="form-group">
+                                                <label for="beneficiary-id-1">ID Number (if over 18)</label>
+                                                <input type="text" class="form-control" id="beneficiary-id-1" name="beneficiary-id-1">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="beneficiary-relationship-1">Relationship</label>
+                                                <input type="text" class="form-control" id="beneficiary-relationship-1" name="beneficiary-relationship-1">
+                                            </div>
+                                        </div>
+                                        <button type="button" class="remove-beneficiary-btn" style="display: none;">Remove</button>
+                                    </div>
+                                </div>
+                                <button type="button" id="add-beneficiary-btn" class="btn btn-secondary mt-3">Add Beneficiary</button>
+                                <p class="text-muted mt-2">Maximum 10 beneficiaries allowed</p>
+                            </div>
+                        
+                            <!-- Bank Details Section -->
+                            <div class="bank-details-section mt-4">
+                                <h4>Bank Account Changes</h4>
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="new-bank-name">Bank Name</label>
+                                        <input type="text" class="form-control" id="new-bank-name" name="new-bank-name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="new-account-number">Account Number</label>
+                                        <input type="text" class="form-control" id="new-account-number" name="new-account-number">
+                                    </div>
+                                </div>
+                                <div class="form-group mt-3">
+                                    <label for="atm-card">Upload New ATM Card</label>
+                                    <input type="file" class="form-control file-input" id="atm-card" name="atm-card" accept="image/*,.pdf" onchange="FileUploadModule.handleFileUpload(event)">
+                                    <p id="atm-card-message" class="file-message"></p>
+                                </div>
+                            </div>
+                            <button type="button" class="skip-btn" data-skip="5">Skip</button>
+                        </div>
+                        <div class="form-step" id="step5">
+                            <h3>Step 5: Submission</h3>
                             <p>Please sign and accept the data protection clause to submit successfully.</p>
                             <div class="signature-box">
                                 <label for="signature-pad-1">Sign Here:</label>
-                                <canvas id="signature-pad-1" width="250" height="150"></canvas>
+                                <canvas id="signature-pad-1" ></canvas>
                                 <div class="buttons">
-                                    <button type="button" class="btn btn-danger btn-sm" id="cancel">Cancel</button>
-                                    <button type="button" class="btn btn-primary btn-sm" id="accept">Accept</button>
+                                    <button type="button" class="btn btn-danger btn-sm buttons" id="cancel">Cancel</button>
+                                    <button type="button" class="btn btn-primary btn-sm buttons" id="accept">Accept</button>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -597,8 +770,8 @@
                             <input type="hidden" id="dataProtectionAccepted" name="dataProtectionAccepted" value="false">                            
                         </div>
                         <div class="button-container">
-                            <button type="button" id="prevBtn" class="nav-button" disabled>Previous</button>
-                            <button type="button" id="nextBtn" class="nav-button">Next</button>
+                            <button type="button" class="btn btn-primary nav-button" id="prevBtn"  disabled>Back</button>
+                            <button type="button" class="btn btn-primary nav-button" id="nextBtn" >Next</button>
                         </div>
                     </form>
                 </div>
@@ -652,6 +825,9 @@
     <div id="flashMessage" class="flash-message"></div>
 
 </body>   
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
     <script>
@@ -1011,6 +1187,75 @@
                 return true;
             }
         };
+        
+        // Add this to your existing JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            let beneficiaryCount = 1;
+            const maxBeneficiaries = 10;
+
+            // Add beneficiary button click handler
+            document.getElementById('add-beneficiary-btn').addEventListener('click', function() {
+                if (beneficiaryCount < maxBeneficiaries) {
+                    beneficiaryCount++;
+                    const newBeneficiary = createBeneficiaryEntry(beneficiaryCount);
+                    document.getElementById('beneficiaries-container').appendChild(newBeneficiary);
+                    
+                    // Show remove buttons if there's more than one beneficiary
+                    document.querySelectorAll('.remove-beneficiary-btn').forEach(btn => {
+                        btn.style.display = beneficiaryCount > 1 ? 'block' : 'none';
+                    });
+
+                    // Disable add button if max reached
+                    if (beneficiaryCount >= maxBeneficiaries) {
+                        this.disabled = true;
+                    }
+                }
+            });
+
+            // Function to create new beneficiary entry
+            function createBeneficiaryEntry(index) {
+                const div = document.createElement('div');
+                div.className = 'beneficiary-entry';
+                div.innerHTML = `
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="beneficiary-name-${index}">Full Name</label>
+                            <input type="text" class="form-control" id="beneficiary-name-${index}" name="beneficiary-name-${index}">
+                        </div>
+                        <div class="form-group">
+                            <label for="beneficiary-dob-${index}">Date of Birth</label>
+                            <input type="date" class="form-control" id="beneficiary-dob-${index}" name="beneficiary-dob-${index}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="beneficiary-id-${index}">ID Number (if over 18)</label>
+                            <input type="text" class="form-control" id="beneficiary-id-${index}" name="beneficiary-id-${index}">
+                        </div>
+                        <div class="form-group">
+                            <label for="beneficiary-relationship-${index}">Relationship</label>
+                            <input type="text" class="form-control" id="beneficiary-relationship-${index}" name="beneficiary-relationship-${index}">
+                        </div>
+                    </div>
+                    <button type="button" class="remove-beneficiary-btn">Remove</button>
+                `;
+
+                // Add remove button handler
+                const removeBtn = div.querySelector('.remove-beneficiary-btn');
+                removeBtn.addEventListener('click', function() {
+                    div.remove();
+                    beneficiaryCount--;
+                    document.getElementById('add-beneficiary-btn').disabled = false;
+                    
+                    // Hide remove buttons if only one beneficiary left
+                    if (beneficiaryCount === 1) {
+                        document.querySelector('.remove-beneficiary-btn').style.display = 'none';
+                    }
+                });
+
+                return div;
+            }
+        });
 
         // Data Protection Modal Module
         const DataProtectionModal = (function () {

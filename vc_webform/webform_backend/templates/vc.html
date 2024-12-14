@@ -431,7 +431,7 @@
             margin-bottom: 15px;
             background: #DCDCDC;
             width: 300px;
-            height: 205px;
+            height: 240px;
         }
         #signature-pad-1 {
             background: #fff;
@@ -748,8 +748,8 @@
                                 <label for="signature-pad-1">Sign Here:</label>
                                 <canvas id="signature-pad-1" ></canvas>
                                 <div class="buttons">
-                                    <button type="button" class="btn btn-danger btn-sm buttons" id="cancel">Cancel</button>
-                                    <button type="button" class="btn btn-primary btn-sm buttons" id="accept">Accept</button>
+                                    <button type="button" class="btn btn-danger btn-sm" id="cancel">Cancel</button>
+                                    <button type="button" class="btn btn-primary btn-sm" id="accept">Accept</button>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -837,7 +837,7 @@
         const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg'];
 
         let currentStep = 1;
-        const totalSteps = 4;
+        const totalSteps = 5;
         let signaturePad;
 
         // DOM Elements
